@@ -3,171 +3,242 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Parsa Taghizadeh - Resume</title>
+  <title>Parsa Taghizadeh Resume</title>
+  <!-- Three.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
-    /* Reset and basic styling */
+    /* Global Styles: Matrix style green text on a black background */
     body, html {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      background: #fff;
-      color: #333;
-      line-height: 1.6;
+      height: 100%;
+      width: 100%;
+      background: #000;
+      color: #00ff00;
+      font-family: "Courier New", monospace;
+      overflow: hidden;
     }
-
-    /* Canvas styling: fixed full-screen background */
-    canvas#bgCanvas {
+    /* Canvas Background container (full screen) */
+    #bg-canvas {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: -1;
       width: 100%;
       height: 100%;
+      z-index: 1;
     }
-
-    /* Container for resume content */
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
+    /* Main content container layered above canvas */
+    .main-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      height: 100%;
+    }
+    /* Sidebar Menu */
+    .sidebar {
+      width: 220px;
+      background: rgba(0, 0, 0, 0.8);
       padding: 20px;
-      background-color: rgba(255,255,255,0.9);
+      box-sizing: border-box;
+      border-right: 1px solid #00ff00;
+      transition: transform 0.3s ease;
     }
-
-    header, section, footer {
-      margin-bottom: 30px;
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
     }
-
-    header h1 {
-      margin-bottom: 5px;
-    }
-
-    .sub-header {
-      color: #666;
-      font-size: 0.9em;
-    }
-
-    h2 {
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 5px;
-      margin-bottom: 15px;
-    }
-
-    /* Example styling for articles (experience entries) */
-    article {
+    .sidebar li {
       margin-bottom: 20px;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar li:hover {
+      opacity: 1;
+    }
+    .sidebar li.active {
+      font-weight: bold;
+      opacity: 1;
+    }
+    /* Content Area */
+    .content {
+      flex: 1;
+      padding: 40px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .content.active {
+      opacity: 1;
+    }
+    /* Section Titles */
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #00ff00;
+    }
+    /* Links */
+    a {
+      color: #00ff00;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    /* Scrollbar styling (optional) */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #00ff00;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <!-- Background Canvas -->
-  <canvas id="bgCanvas"></canvas>
+  <!-- Three.js canvas -->
+  <canvas id="bg-canvas"></canvas>
 
-  <!-- Resume Content Container -->
-  <div class="container">
-    <!-- Header Section -->
-    <header>
-      <h1>Parsa Taghizadeh</h1>
-      <p class="sub-header">Software Engineer – Tehran Province, Iran</p>
-      <p>Contact: +989390076855 | <a href="mailto:parsataghizadeh@gmail.com">parsataghizadeh@gmail.com</a> |
-         <a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a" target="_blank">LinkedIn</a>
-      </p>
-    </header>
+  <!-- Main container for sidebar and content -->
+  <div class="main-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+      <ul>
+        <li class="menu-item active" data-target="about">About Me</li>
+        <li class="menu-item" data-target="projects">Projects</li>
+        <li class="menu-item" data-target="experiences">Experiences</li>
+      </ul>
+    </nav>
 
-    <!-- Top Skills -->
-    <section id="skills">
-      <h2>Top Skills</h2>
-      <p>Nix, Common Lisp, C (Programming Language)</p>
-    </section>
-
-    <!-- Languages -->
-    <section id="languages">
-      <h2>Languages</h2>
-      <p>English (Full Professional), Persian (Native or Bilingual)</p>
-    </section>
-
-    <!-- Summary -->
-    <section id="summary">
-      <h2>Summary</h2>
+    <!-- Content Sections -->
+    <div id="about" class="content active">
+      <div class="section-title">About Me</div>
       <p>
-        Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming.
-        I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
-        My approach blends production-grade development (Django, APIs) with mathematical rigor and tool-driven engineering.
+        <strong>Parsa Taghizadeh</strong> • Software Engineer<br>
+        <strong>Contact:</strong> +989390076855 | <a href="mailto:parsataghizadeh@gmail.com">parsataghizadeh@gmail.com</a><br>
+        <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank">parsa-taghizadeh-17a56722a</a>
       </p>
-    </section>
+      <p>
+        <strong>Summary:</strong><br>
+        Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming. I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
+      </p>
+      <p>
+        <strong>Top Skills:</strong> Nix, Common Lisp, C (Programming Language)
+      </p>
+      <p>
+        <strong>Languages:</strong> English (Full Professional), Persian (Native or Bilingual)
+      </p>
+      <p>
+        <strong>Education:</strong><br>
+        Sama Andishe Islamic Azad University – Senior, Computer Software Engineering (Oct 2021 - Feb 2024)<br>
+        Shamsipour Technical and Vocational College – Computer Software Engineering (Jul 2018 - Dec 2020)
+      </p>
+    </div>
 
-    <!-- Experience -->
-    <section id="experience">
-      <h2>Experience</h2>
-      <article>
-        <h3>Mega FinTech <small>(May 2024 - Present, Dubai, UAE)</small></h3>
-        <p>Full Stack Engineer</p>
-        <ul>
-          <li>Designed and deployed secure internal infrastructure solutions for financial institutions and cryptocurrency exchanges.</li>
-          <li>Built backend systems using FastAPI, SQLModel, and Django.</li>
-          <li>Automated deployments using Nix/NixOS and delivered interfaces via Telegram bots and web UIs.</li>
-          <li>Collaborated with stakeholders ensuring compliance with financial security requirements.</li>
-        </ul>
-      </article>
+    <div id="projects" class="content">
+      <div class="section-title">Projects</div>
+      <p>
+        <!-- Add your projects here, for example: -->
+        <strong>Project 1:</strong> Description of your project...<br>
+        <strong>Project 2:</strong> Description of your project...<br>
+        <!-- Feel free to add more detailed content -->
+      </p>
+    </div>
 
-      <article>
-        <h3>HOOGAMAN <small>(December 2021 - May 2024, Tehran, Iran)</small></h3>
-        <p>Game Developer</p>
-        <ul>
-          <li>Spearheaded full-cycle development for a multilingual online multiplayer word quiz game.</li>
-          <li>Owned end-to-end backend development using Django and deployed via Arvan Cloud.</li>
-          <li>Architected a migration from a monolithic system to scalable microservices using Docker and message brokers.</li>
-        </ul>
-      </article>
-
-      <article>
-        <h3>Alizadeh Cloud Solutions <small>(January 2020 - December 2021, Tehran, Iran)</small></h3>
-        <p>Cloud Specialist</p>
-        <ul>
-          <li>Designed and developed a cloud-based Django backend solution for sensitive enterprise workflows.</li>
-          <li>Implemented a secure RESTful API ecosystem and CI/CD pipelines for zero-downtime updates.</li>
-        </ul>
-      </article>
-    </section>
-
-    <!-- Education -->
-    <section id="education">
-      <h2>Education</h2>
-      <p><strong>Sama Andishe Islamic Azad University</strong> - Computer Software Engineering (October 2021 - February 2024)</p>
-      <p><strong>Shamsipour Technical and Vocational College</strong> - Computer Software Engineering (July 2018 - December 2020)</p>
-    </section>
-
-    <!-- Footer or additional sections -->
-    <footer>
-      <p>© 2024 Parsa Taghizadeh</p>
-    </footer>
+    <div id="experiences" class="content">
+      <div class="section-title">Experiences</div>
+      <!-- Experience 1: Mega FinTech -->
+      <p>
+        <strong>Full Stack Engineer - Mega FinTech</strong><br>
+        <em>May 2024 - Present, Dubai, UAE</em><br>
+        • Designed and deployed secure internal infrastructure solutions.<br>
+        • Built backend systems using FastAPI + SQLModel and Django.<br>
+        • Automated deployments with Nix/NixOS and delivered Telegram/web UIs.
+      </p>
+      <!-- Experience 2: HOOGAMAN -->
+      <p>
+        <strong>Game Developer - HOOGAMAN</strong><br>
+        <em>Dec 2021 - May 2024, Tehran, Iran</em><br>
+        • Spearheaded full-cycle development for an online multiplayer word quiz game.<br>
+        • Managed backend development using Django and migration from monolithic to microservices.<br>
+        • Mentored junior developers and maintained code quality standards.
+      </p>
+      <!-- Experience 3: Alizadeh Cloud Solutions -->
+      <p>
+        <strong>Cloud Specialist - Alizadeh Cloud Solutions</strong><br>
+        <em>Jan 2020 - Dec 2021, Tehran, Iran</em><br>
+        • Architected and implemented cloud-based Django backend solutions.<br>
+        • Developed secure RESTful API ecosystem with robust authentication.
+      </p>
+    </div>
   </div>
 
-  <!-- JavaScript for Canvas Background -->
+  <!-- JavaScript: Three.js and Menu Navigation -->
   <script>
-    // Get the canvas element and its context
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
+    // Three.js background: rotating wireframe cube
+    let scene, camera, renderer, cube;
+    const canvas = document.getElementById("bg-canvas");
 
-    // Function to resize the canvas to full viewport size
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      drawCanvas();
+    function initThreeJS() {
+      scene = new THREE.Scene();
+      // PerspectiveCamera( fov, aspect, near, far )
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 5;
+
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Create a large cube geometry
+      const geometry = new THREE.BoxGeometry(10, 10, 10);
+      // Create a wireframe material with matrix-style green color
+      const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: true
+      });
+      cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
     }
 
-    // Function to draw a gradient background on the canvas
-    function drawCanvas() {
-      // Create a linear gradient from top-left to bottom-right
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#FFDEE9');
-      gradient.addColorStop(1, '#B5FFFC');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function animate() {
+      requestAnimationFrame(animate);
+      // Slow rotation on X and Y axes
+      cube.rotation.x += 0.001;
+      cube.rotation.y += 0.001;
+      renderer.render(scene, camera);
     }
 
-    // Initialize canvas size and drawing
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    initThreeJS();
+    animate();
+
+    // Menu navigation: fading between content sections
+    const menuItems = document.querySelectorAll('.menu-item');
+    const contents = document.querySelectorAll('.content');
+
+    menuItems.forEach(item => {
+      item.addEventListener('click', () => {
+        // Remove active from all menu items
+        menuItems.forEach(mi => mi.classList.remove('active'));
+        // Add active to clicked menu
+        item.classList.add('active');
+
+        // Hide all content sections and then fade in the target
+        contents.forEach(content => content.classList.remove('active'));
+        const target = document.getElementById(item.getAttribute('data-target'));
+        // Use a small timeout to allow the opacity transition to work smoothly
+        setTimeout(() => {
+          target.classList.add('active');
+        }, 100);
+      });
+    });
   </script>
 </body>
 </html>
