@@ -321,8 +321,8 @@
             cube = new THREE.Mesh(geometry, material);
             scene.add(cube);
 
-            cube.position.x = size * aspect + 1.2;
-            cube.position.y = size - 1;
+            cube.position.x = 4;
+            cube.position.y = 2;
             cube.position.z = 0;
 
             const ambientLight = new THREE.AmbientLight(0xcccccc, 0.6);
@@ -458,13 +458,15 @@
 
         setupDetailView('experiences-list', 'experiences-detail', experienceDetails);
 
-        try {
-            initThreeJS();
-            animate();
-        } catch (error) {
-            console.error("Failed to initialize Three.js:", error);
-            if(canvas) canvas.style.display = 'none';
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                initThreeJS();
+                animate();
+            } catch (error) {
+                console.error("Failed to initialize Three.js:", error);
+                if(canvas) canvas.style.display = 'none';
+            }
+        });
 
     </script>
 </body>
