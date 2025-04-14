@@ -1,25 +1,173 @@
-<!doctype html>
-<html class="no-js" lang="">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Untitled</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parsa Taghizadeh - Resume</title>
+  <style>
+    /* Reset and basic styling */
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #333;
+      line-height: 1.6;
+    }
 
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-        <!-- Place favicon.ico in the root directory -->
+    /* Canvas styling: fixed full-screen background */
+    canvas#bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+    }
 
-    </head>
-    <body>
-        <!--[if lt IE 8]>
-            <p class="browserupgrade">
-            You are using an <strong>outdated</strong> browser. Please
-            <a href="http://browsehappy.com/">upgrade your browser</a> to improve
-            your experience.
-            </p>
-        <![endif]-->
-        Hello
+    /* Container for resume content */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: rgba(255,255,255,0.9);
+    }
 
-    </body>
+    header, section, footer {
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      margin-bottom: 5px;
+    }
+
+    .sub-header {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    h2 {
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    /* Example styling for articles (experience entries) */
+    article {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- Resume Content Container -->
+  <div class="container">
+    <!-- Header Section -->
+    <header>
+      <h1>Parsa Taghizadeh</h1>
+      <p class="sub-header">Software Engineer – Tehran Province, Iran</p>
+      <p>Contact: +989390076855 | <a href="mailto:parsataghizadeh@gmail.com">parsataghizadeh@gmail.com</a> |
+         <a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a" target="_blank">LinkedIn</a>
+      </p>
+    </header>
+
+    <!-- Top Skills -->
+    <section id="skills">
+      <h2>Top Skills</h2>
+      <p>Nix, Common Lisp, C (Programming Language)</p>
+    </section>
+
+    <!-- Languages -->
+    <section id="languages">
+      <h2>Languages</h2>
+      <p>English (Full Professional), Persian (Native or Bilingual)</p>
+    </section>
+
+    <!-- Summary -->
+    <section id="summary">
+      <h2>Summary</h2>
+      <p>
+        Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming.
+        I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
+        My approach blends production-grade development (Django, APIs) with mathematical rigor and tool-driven engineering.
+      </p>
+    </section>
+
+    <!-- Experience -->
+    <section id="experience">
+      <h2>Experience</h2>
+      <article>
+        <h3>Mega FinTech <small>(May 2024 - Present, Dubai, UAE)</small></h3>
+        <p>Full Stack Engineer</p>
+        <ul>
+          <li>Designed and deployed secure internal infrastructure solutions for financial institutions and cryptocurrency exchanges.</li>
+          <li>Built backend systems using FastAPI, SQLModel, and Django.</li>
+          <li>Automated deployments using Nix/NixOS and delivered interfaces via Telegram bots and web UIs.</li>
+          <li>Collaborated with stakeholders ensuring compliance with financial security requirements.</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>HOOGAMAN <small>(December 2021 - May 2024, Tehran, Iran)</small></h3>
+        <p>Game Developer</p>
+        <ul>
+          <li>Spearheaded full-cycle development for a multilingual online multiplayer word quiz game.</li>
+          <li>Owned end-to-end backend development using Django and deployed via Arvan Cloud.</li>
+          <li>Architected a migration from a monolithic system to scalable microservices using Docker and message brokers.</li>
+        </ul>
+      </article>
+
+      <article>
+        <h3>Alizadeh Cloud Solutions <small>(January 2020 - December 2021, Tehran, Iran)</small></h3>
+        <p>Cloud Specialist</p>
+        <ul>
+          <li>Designed and developed a cloud-based Django backend solution for sensitive enterprise workflows.</li>
+          <li>Implemented a secure RESTful API ecosystem and CI/CD pipelines for zero-downtime updates.</li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- Education -->
+    <section id="education">
+      <h2>Education</h2>
+      <p><strong>Sama Andishe Islamic Azad University</strong> - Computer Software Engineering (October 2021 - February 2024)</p>
+      <p><strong>Shamsipour Technical and Vocational College</strong> - Computer Software Engineering (July 2018 - December 2020)</p>
+    </section>
+
+    <!-- Footer or additional sections -->
+    <footer>
+      <p>© 2024 Parsa Taghizadeh</p>
+    </footer>
+  </div>
+
+  <!-- JavaScript for Canvas Background -->
+  <script>
+    // Get the canvas element and its context
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Function to resize the canvas to full viewport size
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      drawCanvas();
+    }
+
+    // Function to draw a gradient background on the canvas
+    function drawCanvas() {
+      // Create a linear gradient from top-left to bottom-right
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#FFDEE9');
+      gradient.addColorStop(1, '#B5FFFC');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Initialize canvas size and drawing
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
 </html>
