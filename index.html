@@ -7,7 +7,7 @@
   <!-- Three.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
-    /* Global Styles: Matrix style green text on a black background */
+    /* Global Styles: Matrix-style green text on a black background */
     body, html {
       margin: 0;
       padding: 0;
@@ -17,8 +17,9 @@
       color: #00ff00;
       font-family: "Courier New", monospace;
       overflow: hidden;
+      text-align: center;
     }
-    /* Canvas Background container (full screen) */
+    /* Canvas Background container */
     #bg-canvas {
       position: fixed;
       top: 0;
@@ -27,7 +28,7 @@
       height: 100%;
       z-index: 1;
     }
-    /* Main content container layered above canvas */
+    /* Main container holds sidebar and content area */
     .main-container {
       position: relative;
       z-index: 2;
@@ -61,22 +62,32 @@
       font-weight: bold;
       opacity: 1;
     }
-    /* Content Area */
-    .content {
+    /* Content Area: absolute positioning for centered transitions */
+    .content-wrapper {
+      position: relative;
       flex: 1;
-      padding: 40px;
-      box-sizing: border-box;
-      overflow-y: auto;
+      overflow: hidden;
+    }
+    .content {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      width: calc(100% - 260px);
+      max-width: 800px;
+      padding: 20px;
+      box-sizing: border-box;
     }
     .content.active {
       opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
     }
     /* Section Titles */
     .section-title {
       font-size: 1.5rem;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       padding-bottom: 5px;
       border-bottom: 1px solid #00ff00;
     }
@@ -96,10 +107,18 @@
       background: #00ff00;
       border-radius: 4px;
     }
+    @media (max-width: 600px) {
+      .sidebar {
+        width: 180px;
+      }
+      .content {
+        width: calc(100% - 200px);
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Three.js canvas -->
+  <!-- Three.js canvas for the rotating cube background -->
   <canvas id="bg-canvas"></canvas>
 
   <!-- Main container for sidebar and content -->
@@ -113,72 +132,69 @@
       </ul>
     </nav>
 
-    <!-- Content Sections -->
-    <div id="about" class="content active">
-      <div class="section-title">About Me</div>
-      <p>
-        <strong>Parsa Taghizadeh</strong> • Software Engineer<br>
-        <strong>Contact:</strong> +989390076855 | <a href="mailto:parsataghizadeh@gmail.com">parsataghizadeh@gmail.com</a><br>
-        <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank">parsa-taghizadeh-17a56722a</a>
-      </p>
-      <p>
-        <strong>Summary:</strong><br>
-        Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming. I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
-      </p>
-      <p>
-        <strong>Top Skills:</strong> Nix, Common Lisp, C (Programming Language)
-      </p>
-      <p>
-        <strong>Languages:</strong> English (Full Professional), Persian (Native or Bilingual)
-      </p>
-      <p>
-        <strong>Education:</strong><br>
-        Sama Andishe Islamic Azad University – Senior, Computer Software Engineering (Oct 2021 - Feb 2024)<br>
-        Shamsipour Technical and Vocational College – Computer Software Engineering (Jul 2018 - Dec 2020)
-      </p>
-    </div>
+    <!-- Content wrapper to house absolute centered content sections -->
+    <div class="content-wrapper">
+      <div id="about" class="content active">
+        <div class="section-title">About Me</div>
+        <p>
+          <strong>Parsa Taghizadeh</strong> • Software Engineer<br>
+          <strong>Contact:</strong> +989390076855 | <a href="mailto:parsataghizadeh@gmail.com">parsataghizadeh@gmail.com</a><br>
+          <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank">parsa-taghizadeh-17a56722a</a>
+        </p>
+        <p>
+          <strong>Summary:</strong><br>
+          Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming. I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
+        </p>
+        <p>
+          <strong>Top Skills:</strong> Nix, Common Lisp, C (Programming Language)
+        </p>
+        <p>
+          <strong>Languages:</strong> English (Full Professional), Persian (Native or Bilingual)
+        </p>
+        <p>
+          <strong>Education:</strong><br>
+          Sama Andishe Islamic Azad University – Senior, Computer Software Engineering (Oct 2021 - Feb 2024)<br>
+          Shamsipour Technical and Vocational College – Computer Software Engineering (Jul 2018 - Dec 2020)
+        </p>
+      </div>
 
-    <div id="projects" class="content">
-      <div class="section-title">Projects</div>
-      <p>
-        <!-- Add your projects here, for example: -->
-        <strong>Project 1:</strong> Description of your project...<br>
-        <strong>Project 2:</strong> Description of your project...<br>
-        <!-- Feel free to add more detailed content -->
-      </p>
-    </div>
+      <div id="projects" class="content">
+        <div class="section-title">Projects</div>
+        <p>
+          <strong>Project 1:</strong> Description of your project...<br>
+          <strong>Project 2:</strong> Description of your project...
+        </p>
+      </div>
 
-    <div id="experiences" class="content">
-      <div class="section-title">Experiences</div>
-      <!-- Experience 1: Mega FinTech -->
-      <p>
-        <strong>Full Stack Engineer - Mega FinTech</strong><br>
-        <em>May 2024 - Present, Dubai, UAE</em><br>
-        • Designed and deployed secure internal infrastructure solutions.<br>
-        • Built backend systems using FastAPI + SQLModel and Django.<br>
-        • Automated deployments with Nix/NixOS and delivered Telegram/web UIs.
-      </p>
-      <!-- Experience 2: HOOGAMAN -->
-      <p>
-        <strong>Game Developer - HOOGAMAN</strong><br>
-        <em>Dec 2021 - May 2024, Tehran, Iran</em><br>
-        • Spearheaded full-cycle development for an online multiplayer word quiz game.<br>
-        • Managed backend development using Django and migration from monolithic to microservices.<br>
-        • Mentored junior developers and maintained code quality standards.
-      </p>
-      <!-- Experience 3: Alizadeh Cloud Solutions -->
-      <p>
-        <strong>Cloud Specialist - Alizadeh Cloud Solutions</strong><br>
-        <em>Jan 2020 - Dec 2021, Tehran, Iran</em><br>
-        • Architected and implemented cloud-based Django backend solutions.<br>
-        • Developed secure RESTful API ecosystem with robust authentication.
-      </p>
+      <div id="experiences" class="content">
+        <div class="section-title">Experiences</div>
+        <p>
+          <strong>Full Stack Engineer - Mega FinTech</strong><br>
+          <em>May 2024 - Present, Dubai, UAE</em><br>
+          • Designed and deployed secure internal infrastructure solutions.<br>
+          • Built backend systems using FastAPI + SQLModel and Django.<br>
+          • Automated deployments with Nix/NixOS and delivered Telegram/web UIs.
+        </p>
+        <p>
+          <strong>Game Developer - HOOGAMAN</strong><br>
+          <em>Dec 2021 - May 2024, Tehran, Iran</em><br>
+          • Spearheaded full-cycle development for an online multiplayer word quiz game.<br>
+          • Managed backend development using Django and migration from monolithic to microservices.<br>
+          • Mentored junior developers and maintained code quality standards.
+        </p>
+        <p>
+          <strong>Cloud Specialist - Alizadeh Cloud Solutions</strong><br>
+          <em>Jan 2020 - Dec 2021, Tehran, Iran</em><br>
+          • Architected and implemented cloud-based Django backend solutions.<br>
+          • Developed secure RESTful API ecosystem with robust authentication.
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- JavaScript: Three.js and Menu Navigation -->
+  <!-- JavaScript: Three.js and menu navigation -->
   <script>
-    // Three.js background: rotating wireframe cube
+    // Three.js background: smaller, centered rotating wireframe cube
     let scene, camera, renderer, cube;
     const canvas = document.getElementById("bg-canvas");
 
@@ -191,11 +207,9 @@
       renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
 
-      // Create a large cube geometry
-      const geometry = new THREE.BoxGeometry(10, 10, 10);
-      // Create a wireframe material with matrix-style green color
+      const geometry = new THREE.BoxGeometry(2, 2, 2);
       const material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
+        color: 0xffffff,
         wireframe: true
       });
       cube = new THREE.Mesh(geometry, material);
@@ -219,21 +233,20 @@
     initThreeJS();
     animate();
 
-    // Menu navigation: fading between content sections
+    // Menu navigation: transitions between centered content sections
     const menuItems = document.querySelectorAll('.menu-item');
     const contents = document.querySelectorAll('.content');
 
     menuItems.forEach(item => {
       item.addEventListener('click', () => {
-        // Remove active from all menu items
+        // Remove active class from all menu items
         menuItems.forEach(mi => mi.classList.remove('active'));
-        // Add active to clicked menu
         item.classList.add('active');
 
-        // Hide all content sections and then fade in the target
+        // Remove active class from each content, then add it to the target
         contents.forEach(content => content.classList.remove('active'));
         const target = document.getElementById(item.getAttribute('data-target'));
-        // Use a small timeout to allow the opacity transition to work smoothly
+        // Small timeout for smoother transition if needed
         setTimeout(() => {
           target.classList.add('active');
         }, 100);
