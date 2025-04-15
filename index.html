@@ -204,7 +204,7 @@
                 padding: 15px;
             }
             .content {
-                max-width: 400px;
+                max-width: 700px;
                 padding: 20px;
             }
             .section-title {
@@ -225,7 +225,8 @@
                 font-size: 0.95rem;
             }
             .content {
-                max-width: 400px;
+                width: 90%;
+                max-width: calc(100% - 40px);
                 padding: 15px;
                 max-height: 80vh;
             }
@@ -247,15 +248,18 @@
         }
 
         @media (max-width: 480px) {
-             .sidebar:hover {
-                width: 100px;
+            .sidebar {
+                width: 40px;
+            }
+            .sidebar:hover {
+                width: 120px;
             }
             .sidebar li {
                 font-size: 0.9rem;
             }
             .content {
                 padding: 10px;
-                 max-width: calc(100% - 30px);
+                 max-width: calc(100% - 120px);
             }
             .section-title {
                 font-size: 1.2rem;
@@ -280,7 +284,7 @@
     <div id="about" class="content active">
         <div class="section-title">About Me</div>
         <p>
-            <strong>Parsa Taghizadeh</strong> | Computer Scientist | Software Engineer<br>
+            <strong>Parsa Taghizadeh</strong><br>Computer Scientist | Software Engineer<br>
             <strong>Phone:</strong> <a href="tel:+989390076855">+989390076855</a><br>
             <strong>Email:</strong> <a href="mailto:pi.tze@protonmail.com">pi.tze@protonmail.com</a><br>
         </p>
