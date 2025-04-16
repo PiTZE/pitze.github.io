@@ -2,24 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pi's Resume</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parsa Taghizadeh - Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            background: #000;
-            color: #00ff00;
+        body {
             font-family: "JetBrains Mono", monospace;
+            background-color: #000;
+            color: #00ff00;
             overflow: hidden;
-            font-size: 16px;
             position: relative;
+            min-height: 100vh;
         }
-
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -28,96 +24,133 @@
             height: 100%;
             z-index: 1;
         }
-
         .sidebar {
             position: fixed;
             top: 0;
             left: 0;
             height: 100%;
             width: 50px;
-            padding: 20px 10px;
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.8);
-            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.85);
             border-right: 1px solid #00ff00;
             z-index: 3;
-            transition: width 0.3s ease, padding 0.3s ease;
+            transition: width 0.4s ease-out;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding-top: 20px;
+            padding-bottom: 20px;
         }
-
         .sidebar:hover {
-            width: 150px;
-            padding: 20px;
-            overflow-y: auto;
+            width: 200px;
+            align-items: flex-start;
         }
-
+        .vertical-menu-text {
+            text-align: center;
+            line-height: 1.2;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #00ff00;
+            transition: opacity 0.2s ease;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 1;
+            pointer-events: none;
+        }
+        .sidebar:hover .vertical-menu-text {
+            opacity: 0;
+        }
         .sidebar ul {
             list-style: none;
-            padding: 0;
+            padding: 0 20px;
             margin: 0;
+            width: 100%;
             opacity: 0;
             pointer-events: none;
-            white-space: nowrap;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.3s ease 0.15s;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-
         .sidebar:hover ul {
             opacity: 1;
             pointer-events: auto;
-            transition-delay: 0.1s;
         }
-
-
         .sidebar li {
             margin-bottom: 20px;
             cursor: pointer;
             opacity: 0.8;
-            transition: opacity 0.3s ease, margin-bottom 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease-out;
+            white-space: nowrap;
+            transform: translateX(-15px);
         }
-
+        .sidebar:hover li {
+            transform: translateX(0);
+        }
         .sidebar li:hover {
             opacity: 1;
+            text-shadow: 0 0 5px #00ff00;
         }
-
         .sidebar li.active {
             font-weight: bold;
             opacity: 1;
+            text-shadow: 0 0 5px #00ff00;
         }
-
-        .content {
+        .content-section {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 2;
             opacity: 0;
-            transition: opacity 1s ease, width 0.3s ease, padding 0.3s ease, max-width 0.3s ease;
+            transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
             width: 90%;
-            max-width: 800px;
+            max-width: 600px;
             padding: 25px;
             box-sizing: border-box;
             border: 2px solid #00ff00;
-            text-align: left;
-            background: rgba(0,0,0,0.85);
-            max-height: 85vh;
+            background: rgba(0, 0, 0, 0.9);
+            max-height: 600px;
             overflow-y: auto;
             display: none;
         }
-
-        .content.active {
+        .content-section.active {
             opacity: 1;
             display: block;
         }
-
-        .content-inner > * {
-            transition: opacity 1s ease;
+        .content-section::-webkit-scrollbar {
+            width: 8px;
         }
-        .fade {
-            opacity: 0;
+        .content-section::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
         }
-        .fade.in {
-            opacity: 1;
+        .content-section::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
         }
-
+        .content-section::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #00ff00;
+        }
+        a {
+            color: #00ff00;
+            text-decoration: none;
+            word-break: break-all;
+            transition: text-shadow 0.3s ease;
+        }
+        a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 3px #00ff00;
+        }
         .list-container {
             display: flex;
             flex-direction: column;
@@ -127,50 +160,54 @@
             padding: 10px;
             border: 1px solid #00ff00;
             cursor: pointer;
-            transition: background 0.3s ease, padding 0.3s ease;
+            transition: background 0.3s ease;
         }
         .list-item:hover {
-            background: rgba(0,255,0,0.1);
+            background: rgba(0, 255, 0, 0.1);
         }
-
         .back-button {
             padding: 5px 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border: 1px solid #00ff00;
             background: transparent;
             color: #00ff00;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.3s ease, text-shadow 0.3s ease;
         }
         .back-button:hover {
-            background: rgba(0,255,0,0.1);
+            background: rgba(0, 255, 0, 0.1);
+            text-shadow: 0 0 3px #00ff00;
         }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #00ff00;
-            transition: font-size 0.3s ease, margin-bottom 0.3s ease;
+        .fade {
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
         }
-
-        a {
-            color: #00ff00;
-            text-decoration: none;
-            word-break: break-all;
+        .fade.in {
+            opacity: 1;
         }
-        a:hover {
-            text-decoration: underline;
+        .detail-content p, .detail-content ul {
+            margin-bottom: 1em;
         }
-
-        ::-webkit-scrollbar {
-            width: 8px;
+        .detail-content strong {
+            display: block;
+            margin-bottom: 0.3em;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #00ff00;
-            border-radius: 4px;
+        .detail-content em {
+            display: block;
+            font-style: normal;
+            opacity: 0.8;
+            font-size: 0.9em;
+            margin-bottom: 0.5em;
         }
-
+        .detail-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .detail-content li {
+            margin-bottom: 0.5em;
+            padding-left: 0;
+            position: relative;
+        }
         .social-links {
             position: fixed;
             bottom: 20px;
@@ -179,136 +216,124 @@
             display: flex;
             gap: 15px;
             z-index: 10;
-            transition: bottom 0.3s ease, gap 0.3s ease;
         }
         .social-link {
             color: #00ff00;
             border: 1px solid #00ff00;
             padding: 8px 15px;
             text-decoration: none;
-            font-family: "JetBrains Mono", monospace;
-            transition: background 0.3s ease, text-shadow 0.3s ease, padding 0.3s ease, font-size 0.3s ease;
-            text-shadow: none;
+            transition: background 0.3s ease, text-shadow 0.3s ease;
             white-space: nowrap;
         }
         .social-link:hover {
             background: rgba(0, 255, 0, 0.1);
             text-decoration: none;
-            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #ffffff;
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
         }
-
-
-        @media (max-width: 992px) {
-            .sidebar:hover {
-                width: 180px;
-                padding: 15px;
-            }
-            .content {
-                max-width: 700px;
-                padding: 20px;
-            }
-            .section-title {
-                font-size: 1.4rem;
-            }
-        }
-
         @media (max-width: 768px) {
-            body, html {
-                font-size: 14px;
-            }
-
-            .sidebar {
-                width: 40px;
-            }
-            .sidebar:hover {
-                width: 120px;
-            }
-            .sidebar li {
-                margin-bottom: 15px;
-                font-size: 0.95rem;
-            }
-            .content {
-                max-width: calc(100% - 120px);
-                padding: 15px;
-                max-height: 80vh;
-            }
-            .section-title {
-                font-size: 1.3rem;
-                margin-bottom: 15px;
-            }
-            .list-item {
-                padding: 8px;
-            }
-            .social-links {
-                bottom: 10px;
-                gap: 10px;
-            }
-            .social-link {
-                padding: 6px 10px;
-                font-size: 0.9em;
-            }
+            body { font-size: 14px; }
+            .sidebar { width: 40px; }
+            .sidebar:hover { width: 160px; }
+            .sidebar ul { padding: 0 15px; }
+            .sidebar li { margin-bottom: 15px; font-size: 0.95rem; }
+            .vertical-menu-text { font-size: 0.8rem; line-height: 1.1; }
+            .content-section { max-width: calc(100% - 120px); padding: 20px; max-height: 80vh; left: calc(50% + 20px); transform: translate(-50%, -50%);}
+            .section-title { font-size: 1.4rem; margin-bottom: 15px; }
+            .social-links { bottom: 10px; gap: 10px; }
+            .social-link { padding: 6px 10px; font-size: 0.9em; }
         }
-
-        @media (max-width: 576px) {
-            .sidebar {
-                width: 40px;
-            }
-            .sidebar:hover {
-                width: 120px;
-            }
-            .sidebar li {
-                font-size: 0.9rem;
-            }
-            .content {
-                padding: 10px;
-                 max-width: calc(100% - 120px);
-            }
-            .section-title {
-                font-size: 1.2rem;
-            }
-            .social-link {
-                padding: 5px 8px;
-                font-size: 0.8em;
-            }
+         @media (max-width: 576px) {
+             .content-section { padding: 15px; }
+             .section-title { font-size: 1.3rem; }
+             .social-link { padding: 5px 8px; font-size: 0.8em; }
         }
     </style>
 </head>
-<body>
+<body class="bg-black text-green-500">
     <canvas id="bg-canvas"></canvas>
 
-    <nav class="sidebar">
+    <nav class="sidebar group">
+        <div class="vertical-menu-text">M<br>E<br>N<br>U</div>
         <ul>
-            <li class="menu-item active" data-target="about">About Me</li>
+            <li class="menu-item active" data-target="about">About</li>
+            <li class="menu-item" data-target="skills">Skills</li>
             <li class="menu-item" data-target="experiences">Experiences</li>
+            <li class="menu-item" data-target="education">Education</li>
+            <li class="menu-item" data-target="contact">Contact</li>
         </ul>
     </nav>
 
-    <div id="about" class="content active">
-        <div class="section-title">About Me</div>
-        <p>
-            <strong>Parsa Taghizadeh</strong><br>Computer Scientist | Software Engineer<br>
-            <strong>Phone:</strong> <a href="tel:+989390076855">+989390076855</a><br>
-            <strong>Email:</strong> <a href="mailto:pi.tze@protonmail.com">pi.tze@protonmail.com</a><br>
+    <div id="about" class="content-section active">
+        <p class="mb-4">
+            <strong class="block text-lg mb-1">Parsa Taghizadeh</strong>
+            Computer Scientist | Software Engineer
         </p>
-        <p>
-            <strong>Summary:</strong><br>
-            Backend engineer focused on Python and DevOps, using Emacs as a keystone for problem-solving and literate programming. I build reproducible systems with Nix/NixOS/Linux and explore computational creativity through Common Lisp experiments and LLM-augmented workflows.
+        <p class="mb-4">
         </p>
+            I am primarily a computer enthusiast with a passion for problem-solving, using the skills, tools and technologies I've learnt throughout my life.<br><br>
+            I love using Emacs for programming, writing and organizing my whole life.<br><br>
+            It's Org mode is a perfect tool for documenting projects, note taking, project management and even finances. it is the most versatile file format I've ever used.<br><br>
+            Its a very versatile and life changing tool. ah and it has the best Git client humans ever created, THE MAGIT.<br><br>
+            Also, I use Evil mode in Emacs so I can use the Vim shortcuts. I prefer them over Emacs's own shortcuts which is designed for aliens.<br><br>
         <p>
-            <strong>Top Skills:</strong> Python, Back End, Linux, Declarative Software (Nix/NixOS), Emacs and Lisp Ecosystem
-        </p>
-        <p>
-            <strong>Languages:</strong> English (Full Professional Proficiency), Persian (Native)
-        </p>
-        <p>
-            <strong>Education:</strong><br>
-            Sama Andishe Islamic Azad University – Senior, Computer Software Engineering (Oct 2021 - Feb 2024)<br>
-            Shamsipour Technical and Vocational College – Computer Software Engineering (Jul 2018 - Dec 2020)
-        </p>
+            <strong>Languages:</strong><br>
+            Persian (Native)<br>
+            English (Full Professional Proficiency)
+         </p>
     </div>
 
-    <div id="experiences" class="content">
-        <div class="section-title">Experiences</div>
+    <div id="skills" class="content-section">
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-x-8 gap-y-4">
+            <div>
+                <strong class="block mb-2 text-lg">Languages:</strong>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Python (Proffesional)</li>
+                    <li>Go (not that much)</li>
+                    <li>Common Lisp (a (bit (usefull)))</li>
+                    <li>ELisp (kinda useless outside of Emacs)</li>
+                    <li>C# (I kinda forgot how to write it (god bless LLMs))</li>
+                    <li>C (If I had to(I prefer Lisp))</li>
+                    <li>SQL (Sometimes you can't simply use ORMs)</li>
+                    <li>Bash (The worst language for automating)</li>
+                </ul>
+            </div>
+            <div>
+                <strong class="block mb-2 text-lg">Frameworks & Engines:</strong>
+                 <ul class="list-disc list-inside space-y-1">
+                    <li>Django (Le Best)</li>
+                    <li>FastAPI (Le Fastest)</li>
+                    <li>Unity (Which I HATE)</li>
+                    <li>Godot (The BEST)</li>
+                    <li>Ren'Py (I never wrote a VN)</li>
+                </ul>
+            </div>
+            <div>
+                <strong class="block mb-2 text-lg">Tools & Technologies:</strong>
+                 <ul class="list-disc list-inside space-y-1">
+                    <li>Linux (my main OS)</li>
+                    <li>Emacs (The best OS in existence with keybinds desinged for aliens)</li>
+                    <li>Vim (Keybinds)</li>
+                    <li>Git (MAGIT IS THE BEST)</li>
+                    <li>Nix/NixOS (I use NixOS btw)</li>
+                    <li>Docker (which I kinda hate)</li>
+                    <li>PostgreSQL/SQLite (SQLite is fine for 99% of projects)</li>
+                    <li>Nginx/Gunicorn (I hate deploying things)</li>
+                    <li>REST APIs (Yep)</li>
+                </ul>
+            </div>
+             <div>
+                <strong class="block mb-2 text-lg">Other Areas:</strong>
+                 <ul class="list-disc list-inside space-y-1">
+                    <li>Back-End Web Development (I like data science and AI more anyway)</li>
+                    <li>Game Development (I love it but not as my career)</li>
+                    <li>Project Management (which is not my job anyway)</li>
+                    <li>Declarative Systems (I can talk about it for hours)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="experiences" class="content-section">
         <div class="content-inner">
             <div id="experiences-list" class="list-container fade in">
                 <div class="list-item" data-id="exp1">Full Stack Engineer - Mega FinTech</div>
@@ -316,11 +341,36 @@
                 <div class="list-item" data-id="exp3">Back End Developer - Alizadeh Cloud Solutions</div>
             </div>
             <div id="experiences-detail" class="fade" style="display: none;">
-                <button class="back-button">Back</button>
-                <div class="detail-content">
-                </div>
+                <button class="back-button">&lt; Back</button>
+                <div class="detail-content"></div>
             </div>
         </div>
+    </div>
+
+    <div id="education" class="content-section">
+        <p class="mb-4">
+            <strong class="block mb-1">Sama Andishe Islamic Azad University</strong>
+            Senior, Computer Software Engineering<br>
+            <em>Oct 2021 - Feb 2024</em><br>
+            I had a lot of fun there.<br>
+            I learnt how to speech for a lot of people who really don't understand the diffrence between programming and installing windows(a physical one).<br>
+        </p>
+        <p>
+            <strong class="block mb-1">Shamsipour Technical and Vocational College</strong>
+            Computer Software Engineering<br>
+            <em>Jul 2018 - Dec 2020</em><br>
+            I hate every second I had there.
+        </p>
+    </div>
+
+     <div id="contact" class="content-section">
+        <div class="section-title">Contact</div>
+        <p class="mb-4">
+            <strong>Phone:</strong> <a href="tel:+989390076855">+989390076855</a>
+        </p>
+        <p class="mb-4">
+            <strong>Email:</strong> <a href="mailto:pi.tze@protonmail.com">pi.tze@protonmail.com</a>
+        </p>
     </div>
 
     <div class="social-links">
@@ -336,9 +386,9 @@
             try {
                 scene = new THREE.Scene();
                 const aspect = window.innerWidth / window.innerHeight;
-                const size = 3;
+                const size = 4;
                 camera = new THREE.OrthographicCamera(-size * aspect, size * aspect, size, -size, 0.1, 1000);
-                camera.position.z = 7;
+                camera.position.z = 8;
 
                 renderer = new THREE.WebGLRenderer({
                     canvas: canvas,
@@ -351,32 +401,36 @@
                 const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
                 const material = new THREE.MeshPhongMaterial({
                     color: 0x00ff00,
-                    shininess: 80,
+                    emissive: 0x072534,
+                    shininess: 50,
+                    specular: 0x111111,
                     transparent: true,
-                    opacity: 0.85
+                    opacity: 0.9
                 });
                 cube = new THREE.Mesh(geometry, material);
                 scene.add(cube);
 
-                cube.position.set(0, 2.5, 0);
+                cube.position.set(0, 3.2, 0);
 
-                const ambientLight = new THREE.AmbientLight(0xcccccc, 0.6);
+                const ambientLight = new THREE.AmbientLight(0xcccccc, 0.5);
                 scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-                directionalLight.position.set(1, 1.5, 1).normalize();
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 2, 1).normalize();
                 scene.add(directionalLight);
+                const pointLight = new THREE.PointLight(0x00ff00, 0.5, 100);
+                pointLight.position.set(-2, -1, 2);
+                scene.add(pointLight);
 
             } catch (error) {
-                 console.error("Error during Three.js initialization:", error);
-                 if(canvas) canvas.style.display = 'none';
+                console.error("Error during Three.js initialization:", error);
+                if (canvas) canvas.style.display = 'none';
             }
         }
 
         function animate() {
-             if (!renderer || !scene || !camera) {
-                 requestAnimationFrame(animate);
-                 return;
-             }
+            if (!renderer || !scene || !camera) {
+                return;
+            }
             requestAnimationFrame(animate);
 
             if (cube) {
@@ -390,7 +444,7 @@
         function onWindowResize() {
             if (camera && renderer) {
                 const aspect = window.innerWidth / window.innerHeight;
-                const size = 3;
+                const size = 4;
                 camera.left = -size * aspect;
                 camera.right = size * aspect;
                 camera.top = size;
@@ -402,130 +456,144 @@
         window.addEventListener('resize', onWindowResize);
 
         const menuItems = document.querySelectorAll('.menu-item');
-        const contents = document.querySelectorAll('.content');
+        const contentSections = document.querySelectorAll('.content-section');
+        const transitionDuration = 800;
 
         function switchContent(targetId) {
-            contents.forEach(content => {
-                if (content.id === targetId) {
-                    content.classList.add('active');
-                    content.scrollTop = 0;
+            let activeSectionFound = false;
+            contentSections.forEach(section => {
+                if (section.id === targetId) {
+                    activeSectionFound = true;
+                    if (section.classList.contains('active') && section.style.display === 'block') {
+                        return;
+                    }
+                    section.style.display = 'block';
+                    void section.offsetWidth;
+                    section.classList.add('active');
+                    section.scrollTop = 0;
                 } else {
-                    content.classList.remove('active');
+                    if (section.classList.contains('active')) {
+                        section.classList.remove('active');
+                        setTimeout(() => {
+                            if (!section.classList.contains('active')) {
+                                section.style.display = 'none';
+                            }
+                        }, transitionDuration);
+                    } else {
+                        section.style.display = 'none';
+                    }
                 }
             });
+
+            if (activeSectionFound) {
+                menuItems.forEach(item => {
+                    item.classList.toggle('active', item.getAttribute('data-target') === targetId);
+                });
+            }
         }
 
         menuItems.forEach(item => {
             item.addEventListener('click', () => {
                 const targetId = item.getAttribute('data-target');
-                menuItems.forEach(mi => mi.classList.remove('active'));
-                item.classList.add('active');
                 switchContent(targetId);
             });
         });
 
-        if (menuItems.length > 0) {
-            const initialTarget = document.querySelector('.menu-item.active')?.getAttribute('data-target')
-                                  || menuItems[0].getAttribute('data-target');
-            if (initialTarget) {
-                switchContent(initialTarget);
-            }
-        }
-
         const experienceDetails = {
-            exp1: `<strong>Full Stack Engineer - Mega FinTech</strong><br>
-                   <em>May 2024 - Present Dubai, United Arab Emirates  Remote</em><br>
-                   Backend Developer | Confidential Client Projects<br>
-                   • Designed and deployed secure internal infrastructure solutions for financial institutions/cryptocurrency exchanges (NDA).<br>
-                   • Built backend systems using FastAPI + SQLModel (PostgreSQL/SQLite) and Django.<br>
-                   • Automated deployments using Nix/NixOS for reproducible builds and consistency.<br>
-                   • Delivered user interfaces via Telegram bots (AIogram/Telethon) and web UIs (Jinja/Django).<br>
-                   • Utilized Linux, Nix flakes, and Emacs for development and infrastructure.<br>
-                   • Collaborated with stakeholders through a trusted intermediary.`,
-            exp2: `<strong>Game Developer - HOOGAMAN</strong><br>
-                   <em>Dec 2021 - May 2024  2 yrs 6 mos Tehran, Iran</em><br>
-                   • Spearheaded full-cycle development for a multilingual online multiplayer word quiz game (Jaan Jibi / Can Cepper) using Unity3D.<br>
-                   • Owned end-to-end backend development using Django, including manual deployment (Arvan Cloud, Gunicorn, Nginx).<br>
-                   • Architected and led migration from monolith to microservices (Docker, message brokers).<br>
-                   • Implemented real-time multiplayer logic, tournament systems, and localization (Persian/Turkish).<br>
-                   • Mentored junior developers, maintained code quality, and supported 10,000+ active users.`,
-            exp3: `<strong>Back End Developer - Alizadeh Cloud Solutions</strong><br>
-                   <em>Jan 2020 - Dec 2021  2 yrs Tehran, Tehran Province, Iran  On-site</em><br>
-                   Backend Developer for confidential clients (NDA).<br>
-                   • Architected and implemented mission-critical systems.<br>
-                   • Designed and developed a cloud-based Django backend solution for sensitive enterprise workflows.<br>
-                   • Built a secure RESTful API ecosystem (authentication, access controls).<br>
-                   • Spearheaded full lifecycle development and deployment on Linux (Gunicorn/Nginx).<br>
-                   • Implemented CI/CD pipelines and created comprehensive API documentation.`
+            exp1: `<strong>Full Stack Engineer - Mega FinTech</strong>
+                    <em>May 2024 - Present(not that much) | Dubai, United Arab Emirates (Remote)</em>
+                    <ul>
+                        <li>Designed and deployed internal infrastructure solutions for financial cryptocurrency exchanges (I can't really talk about it cause of NDA).</li>
+                        <li>Built backend systems using FastAPI + SQLModel and Django for bigger and more complex projects.</li>
+                        <li>Automated deployments using Nix/NixOS for reproducible builds and consistency across tech stack and because I love declarative build systems.</li>
+                        <li>Delivered user interfaces via Telegram bots (AIogram/Telethon which I kinda like) and web UIs (Jinja/Django which I hate).</li>
+                    </ul>`,
+            exp2: `<strong>Game Developer(and kinda Backend Developer) - HOOGAMAN</strong>
+                    <em>Dec 2021 - May 2024 (2 yrs 6 mos) | Tehran, Iran</em>
+                    <ul>
+                        <li>I developed a multilingual online multiplayer word quiz game(what a mouthful) Jaan Jibi / Can Cepper using Unity3D(the engine I hate).</li>
+                        <li>I also took over their Django game Backend because their guy left the company..</li>
+                        <li>Implemented real-time multiplayer logic, tournament system, and localization (Persian/Turkish which I hate the most in that entire job) in both the game and it's Django backend.</li>
+                        <li>Mentored some junior developers(I kinda was a mid level there) and teach them game development and backend development.</li>
+                    </ul>`,
+            exp3: `<strong>Back End Developer - Alizadeh Cloud Solutions</strong>
+                    <em>Jan 2020 - Dec 2021 (2 yrs) | Tehran, Iran (On-site)</em>
+                    <p>Backend Developer</p>
+                    <ul>
+                        <li>it was my first job as a programmer and I have a really bad NDA with them.</li>
+                        <li>I Designed and developed a Django backend solution for their internal needs.</li>
+                        <li>I Built a RESTful API using Django Rest Framework (which I love) for the first time in a production environment.</li>
+                        <li>I deployed it myself but back then I didn't know nix and docker so I did it manually with Git and other tools I can't remember on linux.</li>
+                    </ul>`
         };
+        const detailFadeDuration = 600;
 
         function setupDetailView(listContainerId, detailContainerId, detailMap) {
             const listContainer = document.getElementById(listContainerId);
             const detailContainer = document.getElementById(detailContainerId);
-            if (!listContainer || !detailContainer) {
-                 console.error("List or Detail container not found for IDs:", listContainerId, detailContainerId);
-                 return;
-            }
+            if (!listContainer || !detailContainer) return;
 
             const detailContentEl = detailContainer.querySelector('.detail-content');
             const backButton = detailContainer.querySelector('.back-button');
+            if (!detailContentEl || !backButton) return;
 
-             if (!detailContentEl || !backButton) {
-                 console.error("Detail content element or back button not found within:", detailContainerId);
-                 return;
-             }
+            listContainer.addEventListener('click', (event) => {
+                const listItem = event.target.closest('.list-item');
+                if (!listItem) return;
+                const id = listItem.getAttribute('data-id');
+                if (detailMap[id]) {
+                    detailContentEl.innerHTML = detailMap[id];
+                    listContainer.classList.remove('in');
+                    detailContainer.style.display = 'block';
 
-            listContainer.querySelectorAll('.list-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = item.getAttribute('data-id');
-                    if (detailMap[id]) {
-                        detailContentEl.innerHTML = detailMap[id];
-
+                    setTimeout(() => {
                         listContainer.style.display = 'none';
-                        listContainer.classList.remove('in');
-
-                        detailContainer.style.display = 'block';
-                        detailContainer.scrollTop = 0;
                         void detailContainer.offsetWidth;
                         detailContainer.classList.add('in');
-
-                    } else {
-                         console.warn("No detail found in detailMap for ID:", id);
-                    }
-                });
+                        detailContainer.scrollTop = 0;
+                    }, detailFadeDuration);
+                }
             });
 
             backButton.addEventListener('click', () => {
                 detailContainer.classList.remove('in');
+                listContainer.style.display = 'flex';
 
                 setTimeout(() => {
                     detailContainer.style.display = 'none';
-                    listContainer.style.display = 'flex';
                     void listContainer.offsetWidth;
                     listContainer.classList.add('in');
-                }, 1000);
+                }, detailFadeDuration);
             });
         }
 
-         if (document.getElementById('experiences-list') && document.getElementById('experiences-detail')) {
-            setupDetailView('experiences-list', 'experiences-detail', experienceDetails);
-         }
-
-
         document.addEventListener('DOMContentLoaded', function() {
             initThreeJS();
-
             if (renderer && scene && camera) {
-                 animate();
+                animate();
             } else {
                 console.error("Three.js setup failed, animation loop not started.");
+                if(canvas) canvas.style.display = 'none';
             }
 
-             if (document.getElementById('experiences-list') && document.getElementById('experiences-detail')) {
+            const initialTarget = document.querySelector('.menu-item.active')?.getAttribute('data-target');
+            if (initialTarget) {
+                const initialSection = document.getElementById(initialTarget);
+                if (initialSection) {
+                    contentSections.forEach(s => s.style.display = 'none');
+                    initialSection.style.display = 'block';
+                    initialSection.style.opacity = 1;
+                    initialSection.classList.add('active');
+                }
+            } else if (menuItems.length > 0) {
+                switchContent(menuItems[0].getAttribute('data-target'));
+            }
+
+            if (document.getElementById('experiences-list') && document.getElementById('experiences-detail')) {
                 setupDetailView('experiences-list', 'experiences-detail', experienceDetails);
-             } else {
-                 console.error("Experience list/detail elements not found on DOMContentLoaded.");
-             }
+            } else {
+                console.error("Experience list/detail elements not found on DOMContentLoaded.");
+            }
         });
 
     </script>
