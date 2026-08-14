@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
-    <meta name="description" content="Parsa Taghizadeh — software engineer focused on backend systems, support automation, and Linux infrastructure.">
-    <title>Parsa Taghizadeh — Resume</title>
+    <meta name="description" content="Parsa Taghizadeh, software engineer focused on backend systems, support automation, and Linux infrastructure.">
+    <title>Parsa Taghizadeh / Resume</title>
     <script>
         (function () {
             var saved = localStorage.getItem("resume-theme");
@@ -20,23 +20,23 @@
         [data-theme="modus-vivendi"] {
             --bg: #000000;
             --fg: #ffffff;
-            --fg-dim: #989898;
-            --fg-muted: #757575;
+            --fg-dim: #c4c4c4;
+            --fg-muted: #aaaaaa;
             --fill: rgba(255, 255, 255, 0.08);
             --fill-strong: rgba(255, 255, 255, 0.14);
             --selection-bg: rgba(152, 152, 152, 0.45);
             --selection-fg: #ffffff;
             --glow: rgba(255, 255, 255, 0.35);
-            --cube-color: #b0b0b0;
-            --cube-emissive: #2a2a2a;
-            --cube-specular: #dddddd;
+            --cube-color: #ff0000;
+            --cube-emissive: #660000;
+            --cube-specular: #ff6666;
             --cube-size: 32px;
             --panel: rgba(0, 0, 0, 0.82);
             --chrome: rgba(0, 0, 0, 0.88);
-            --border: #646464;
-            --border-soft: rgba(255, 255, 255, 0.22);
-            --border-mid: rgba(255, 255, 255, 0.38);
-            --border-faint: rgba(255, 255, 255, 0.14);
+            --border: #808080;
+            --border-soft: rgba(255, 255, 255, 0.28);
+            --border-mid: rgba(255, 255, 255, 0.44);
+            --border-faint: rgba(255, 255, 255, 0.18);
             --term-shadow: rgba(255, 255, 255, 0.06);
             --term-inset: rgba(255, 255, 255, 0.03);
             --scrollbar-track: #1e1e1e;
@@ -55,9 +55,9 @@
             --selection-bg: rgba(89, 89, 89, 0.28);
             --selection-fg: #000000;
             --glow: rgba(0, 0, 0, 0.22);
-            --cube-color: #707070;
-            --cube-emissive: #1f1f1f;
-            --cube-specular: #a8a8a8;
+            --cube-color: #0000ff;
+            --cube-emissive: #000066;
+            --cube-specular: #6666ff;
             --cube-size: 32px;
             --panel: rgba(255, 255, 255, 0.92);
             --chrome: rgba(255, 255, 255, 0.94);
@@ -384,6 +384,18 @@
             color: var(--fg-dim);
         }
 
+        .role-sub::before {
+            content: ", ";
+        }
+
+        .about-langs .about-langs-label::after {
+            content: " ";
+        }
+
+        .about-langs .lang-wrap span + span::before {
+            content: ", ";
+        }
+
         .lede, .copy, .muted {
             margin: 0 0 1em;
             overflow-wrap: anywhere;
@@ -395,7 +407,7 @@
 
         .section-kicker {
             margin: 0 0 16px;
-            color: var(--fg-muted);
+            color: var(--fg-dim);
             font-size: 0.82rem;
         }
 
@@ -547,8 +559,15 @@
         }
 
         .edu h3 {
-            margin: 0 0 4px;
+            margin: 0 0 6px;
             font-size: 1rem;
+        }
+
+        .edu-meta {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .contact-row {
@@ -583,6 +602,12 @@
             border: 1px solid var(--fg);
             padding: 8px 14px;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 8.5rem;
+            box-sizing: border-box;
+            text-align: center;
         }
 
         .social-link:hover {
@@ -681,6 +706,36 @@
             .skill-grid { grid-template-columns: 1fr; }
             .term-body { padding: 16px; }
             .name { font-size: 1.28rem; }
+
+            .role {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .role-sub::before {
+                content: none;
+            }
+
+            .about-langs {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .about-langs .about-langs-label::after {
+                content: none;
+            }
+
+            .about-langs .lang-wrap {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .about-langs .lang-wrap span + span::before {
+                content: none;
+            }
         }
 
         @media (max-width: 520px) {
@@ -715,9 +770,11 @@
             .social-link {
                 padding: 10px 12px;
                 font-size: 0.85rem;
+                min-width: 8.5rem;
                 min-height: 44px;
                 display: inline-flex;
                 align-items: center;
+                justify-content: center;
             }
 
             .contact-row { grid-template-columns: 1fr; gap: 2px; }
@@ -809,11 +866,17 @@
                 <section id="about" class="content-section active">
                     <p class="section-kicker">$ cat about.txt</p>
                     <h1 class="name">Parsa Taghizadeh</h1>
-                    <p class="role">Software Engineer — Backend &amp; Automation</p>
+                    <p class="role"><span>Software Engineer</span><span class="role-sub">Backend &amp; Automation</span></p>
                     <p class="lede">Six years building backend systems and internal automation (since Jan 2020). I work on APIs and deployment pipelines, and on tools that take repetitive operations work off other people's plates. Day to day that is mostly Python (Django, FastAPI) on Linux, with Go when a single binary is the right shape.</p>
                     <p class="copy">Much of my recent work is under NDA: infrastructure, billing automation, internal services. I can talk through the technical approach in an interview even when I cannot name the product.</p>
                     <p class="copy">I run NixOS and live in Emacs (Evil, Org, Magit). I like systems that are inspectable and repeatable.</p>
-                    <p class="muted">Languages: Persian (native), English (full professional proficiency)</p>
+                    <p class="muted about-langs">
+                        <span class="about-langs-label">Languages:</span>
+                        <span class="lang-wrap">
+                            <span>Persian (native)</span>
+                            <span>English (full professional proficiency)</span>
+                        </span>
+                    </p>
                 </section>
 
                 <section id="skills" class="content-section">
@@ -895,7 +958,7 @@
                         </div>
                     </details>
 
-                    <p class="gap-note">Feb 2026 – Apr 2026 · no work — nationwide internet blackout in Iran</p>
+                    <p class="gap-note">Feb 2026 – Apr 2026 · no work: nationwide internet blackout in Iran</p>
 
                     <details class="job">
                         <summary>
@@ -947,7 +1010,7 @@
 
                     <div class="project">
                         <span class="project-title">WHMCS Automation Engine <span class="project-link">private · Bertina Hosting · sole author</span></span>
-                        <span class="project-desc">Agentic support automation I designed and built alone for Bertina, an Iranian hosting provider. Three parts: a FastAPI core, a PHP addon inside WHMCS, and a Markdown knowledge vault in a separate repo. The ticket pipeline classifies each request, gathers the customer account, drafts a Persian reply, and a second model verifies every factual claim against that account. Fail twice, or hit a destructive action, and a person takes it. Tool access is policy-as-code with hash-bound approvals. Vault pages are trusted; ticket text is quarantined so customer prompts cannot become instructions. The same core runs Ask Agent, Agent Rewrite, and a staff approvals queue. In production on the ticket path. On 1,000 real production tickets, about 80% were answered or resolved through follow-ups and clarifying questions without a human; about 20% were escalated with full context (account state, draft reply, verification notes) so support could act in one step.</span>
+                        <span class="project-desc">Production agentic support for Bertina hosting. FastAPI core, WHMCS PHP addon, and a Markdown knowledge vault in a separate repo. Classify tickets, draft Persian replies, verify against account data, escalate with context. In production on the live ticket path.</span>
                     </div>
 
                     <a class="project" href="https://github.com/PiTZE/Mein-Proxy" target="_blank" rel="noopener noreferrer">
@@ -967,7 +1030,7 @@
 
                     <a class="project" href="https://github.com/PiTZE/Agent-Mesh" target="_blank" rel="noopener noreferrer">
                         <span class="project-title">Agent Mesh <span class="project-link">github.com/PiTZE/Agent-Mesh</span></span>
-                        <span class="project-desc">Agent harness for controlling servers, same idea as Hermes and OpenClaw, started before either existed. Go service that turns natural-language requests into shell commands over an OpenAI-compatible API; the mesh is multiple machines linked p2p or over Tailscale. PorTTY began as this project's browser terminal.</span>
+                        <span class="project-desc">Agent harness for controlling servers, same idea as Hermes and OpenClaw, started before either was public. Go service that turns natural-language requests into shell commands over an OpenAI-compatible API; the mesh is multiple machines linked p2p or over Tailscale. PorTTY began as this project's browser terminal.</span>
                     </a>
 
                     <a class="project" href="https://github.com/PiTZE/Scriptorium" target="_blank" rel="noopener noreferrer">
@@ -980,15 +1043,25 @@
                     <p class="section-kicker">$ cat education.txt</p>
                     <div class="edu">
                         <h3>Sama Andishe Islamic Azad University</h3>
-                        <p class="muted">Computer Software Engineering · Oct 2021 – Feb 2024</p>
+                        <p class="muted edu-meta">
+                            <span class="edu-degree">Computer Software Engineering</span>
+                            <span class="edu-dates">Oct 2021 – Feb 2024</span>
+                        </p>
                     </div>
                     <div class="edu">
                         <h3>Sharif University of Technology</h3>
-                        <p class="muted">Computer Software Engineering · Jan 2021 – Jun 2021</p>
+                        <p class="muted edu-meta">
+                            <span class="edu-note">Guest student</span>
+                            <span class="edu-degree">Computer Software Engineering</span>
+                            <span class="edu-dates">Jan 2021 – Jun 2021</span>
+                        </p>
                     </div>
                     <div class="edu">
                         <h3>Shamsipour Technical and Vocational College</h3>
-                        <p class="muted">Computer Software Engineering · Jul 2018 – Dec 2020</p>
+                        <p class="muted edu-meta">
+                            <span class="edu-degree">Computer Software Engineering</span>
+                            <span class="edu-dates">Jul 2018 – Dec 2020</span>
+                        </p>
                     </div>
                 </section>
 
