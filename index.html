@@ -3394,6 +3394,8 @@
                 "uniform float u_distanceFade;",
                 "uniform float u_mirrorSplits;",
                 "uniform float u_settle;",
+                "uniform float u_saturation;",
+                "uniform vec3 u_accent;",
                 "varying vec2 vUv;",
                 "",
                 // Kaleidoscope warp: fold the plane into mirrored wedges around the core.
@@ -3428,6 +3430,13 @@
                 "        vec3 tint = 0.5 + 0.5 * cos(",
                 "            vec3(u_time * u_colorSpeed + fi * 0.5) + u_colorShift +",
                 "            vec3(0.0, 2.0944, 4.1888));",
+                // A full-strength rainbow spends a third of its cycle in magenta, which is
+                // where the pink cast came from. Pull most of the saturation out and bias
+                // what is left toward the theme accent, so the glow stays the site's colour
+                // instead of drifting through pink.
+                "        float tl = dot(tint, vec3(0.2126, 0.7152, 0.0722));",
+                "        tint = mix(vec3(tl), tint, u_saturation);",
+                "        tint = mix(tint, u_accent, 0.30);",
                 "        acc += tint * (u_glow / d);",
                 "    }",
                 "    acc *= exp(-length(warped) / max(u_distanceFade, 0.01));",
@@ -3491,7 +3500,9 @@
                         u_colorShift: { value: new THREE.Vector3().fromArray(VOID_COLOR_SHIFT) },
                         u_distanceFade: { value: VOID_FADE },
                         u_mirrorSplits: { value: VOID_SPLITS },
-                        u_settle: { value: 0 }
+                        u_settle: { value: 0 },
+                        u_saturation: { value: 0.22 },
+                        u_accent: { value: roomPalette().accent.clone() }
                     },
                     vertexShader: LENS_VERT,
                     fragmentShader: LENS_FRAG,
@@ -3509,6 +3520,9 @@
                     start: performance.now(),
                     done: false,
                     doneAt: 0,
+                    glassBase: room.screenGlass.material.color.clone(),
+                    glassTint: room.screenGlass.material.color.clone(),
+                    accent: roomPalette().accent.clone(),
                     fromPos: room.screenGlass.position.clone(),
                     fromScale: room.screenGlass.scale.clone()
                 };
@@ -3532,13 +3546,35 @@
                 );
                 glass.rotation.z = spin * 0.6;
 
+                // The page is a DOM overlay sitting above the WebGL canvas, so the lens
+                // shader cannot touch it -- left alone it stays crisp and bright while the
+                // room bends around it, and the two read as separate layers. Hand it over
+                // to the scene early instead: it blurs, darkens and dissolves in the first
+                // third of the pull, and from there the only thing being swallowed is the
+                // screen mesh, which is genuinely in the world and genuinely lensed.
+                if (room.screenMode !== "canvas") {
+                    const consumed = Math.min(1, k / 0.45);
+                    const ease = consumed * consumed;
+                    overlay.style.filter =
+                        "blur(" + (ease * 7).toFixed(2) + "px) " +
+                        "brightness(" + (1 - ease * 0.9).toFixed(3) + ") " +
+                        "contrast(" + (1 + ease * 0.6).toFixed(2) + ")";
+                    overlay.style.opacity = (1 - ease).toFixed(3);
+                    // The mesh left behind picks up the accent as it is drained, so the
+                    // monitor does not simply blink to an empty black rectangle.
+                    blackHole.glassTint.copy(blackHole.glassBase)
+                        .lerp(blackHole.accent, ease * 0.55 * (1 - k));
+                    glass.material.color.copy(blackHole.glassTint);
+                }
+
                 // Anchor the singularity to where the screen actually is on the viewport.
                 lensCenter.set(blackHole.fromPos.x, blackHole.fromPos.y, blackHole.fromPos.z);
                 lensCenter.project(room.camera);
                 const uniforms = blackHole.material.uniforms;
                 uniforms.u_center.value.set(lensCenter.x * 0.5 + 0.5, lensCenter.y * 0.5 + 0.5);
-                uniforms.u_mass.value = VOID_MASS * k;
-                uniforms.u_swirl.value = k * 1.15;
+                const bend = Math.max(0, (k - 0.30) / 0.70);
+                uniforms.u_mass.value = VOID_MASS * bend * bend;
+                uniforms.u_swirl.value = bend * 1.15;
                 uniforms.u_time.value = (now - blackHole.start) * 0.001 * VOID_SPEED;
                 // The particles rise as the room dims, so one hands over to the other.
                 uniforms.u_progress.value = Math.pow(k, 0.75);
@@ -3571,7 +3607,10 @@
                 glass.scale.copy(blackHole.fromScale);
                 glass.rotation.z = 0;
                 glass.visible = true;
+                glass.material.color.copy(blackHole.glassBase);
                 overlay.style.visibility = "";
+                overlay.style.filter = "";
+                overlay.style.opacity = "";
                 blackHole = null;
             }
 
