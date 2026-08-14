@@ -1811,9 +1811,9 @@
         <div class="rotate-card">
             <div class="rotate-phone" aria-hidden="true"></div>
             <p class="rotate-title" id="room-rotate-title">Turn your phone sideways</p>
-            <p class="rotate-copy" id="room-rotate-copy">The room opens in landscape.</p>
+            <p class="rotate-copy" id="room-rotate-copy">This one needs landscape.</p>
             <div class="rotate-actions">
-                <button type="button" id="room-rotate-go" hidden>Enter the room</button>
+                <button type="button" id="room-rotate-go" hidden>Continue</button>
                 <button type="button" id="room-rotate-cancel">Never mind</button>
             </div>
         </div>
@@ -2610,7 +2610,11 @@
                     // room below that is exactly what made it look softer than the rest of
                     // the page. 3 is the ceiling only so 4x tablets do not melt.
                     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
-                    renderer.setSize(w, h, false);
+                    // A canvas is a replaced element: "inset: 0" cannot stretch it, so with
+                    // width:auto it lays out at its backing-store size. Skipping the style
+                    // update was fine while the pixel ratio was 1, but at 3 it displayed
+                    // three times oversized. Let three set the CSS size in CSS pixels.
+                    renderer.setSize(w, h);
                     cssRenderer.setSize(w, h);
                 }
 
@@ -2623,7 +2627,9 @@
                     cssObject,
                     mount: overlay,
                     appHome: null,
-                    htmlSurface: HTML_CANVAS_SUPPORTED ? createHtmlSurface(STAGE_W, STAGE_H) : null,
+                    htmlSurface: HTML_CANVAS_SUPPORTED
+                        ? createHtmlSurface(STAGE_W, STAGE_H)
+                        : createBakeSurface(SCREEN_CSS_W, SCREEN_CSS_H),
                     screenMode: "dom",
                     mats,
                     panelMat,
@@ -2729,6 +2735,128 @@
                         stage.onpaint = null;
                         texture.dispose();
                         holder.remove();
+                    }
+                };
+            }
+
+            // Fallback when drawElementImage is missing (every normal browser, including
+            // phones). CSS3D looks fine head-on but drifts off the bezel at an angle on
+            // mobile, so look mode bakes .app into a real texture that depth-tests with
+            // the room. The live CSS3D page comes back the moment look mode ends.
+            function createBakeSurface(width, height) {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.generateMipmaps = true;
+                texture.anisotropy = maxAnisotropy;
+
+                let appRef = null;
+                let dirty = false;
+                let baking = false;
+                let bakeGen = 0;
+
+                function pageCss() {
+                    return Array.prototype.map.call(
+                        document.querySelectorAll("style"),
+                        (node) => node.textContent || ""
+                    ).join("\n").replace(/body\.room-active/g, ".room-bake");
+                }
+
+                function bake(app) {
+                    if (!app || baking) return;
+                    baking = true;
+                    const gen = ++bakeGen;
+                    const w = app.offsetWidth || room.htmlW || width;
+                    const h = app.offsetHeight || room.htmlH || height;
+                    const theme = document.documentElement.dataset.theme || "modus-vivendi";
+                    const bg = getComputedStyle(document.documentElement)
+                        .getPropertyValue("--bg").trim() || "#000";
+                    const css = pageCss();
+                    const markup = new XMLSerializer().serializeToString(app);
+                    const svg = [
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="', w, '" height="', h, '">',
+                        '<foreignObject width="100%" height="100%">',
+                        '<div xmlns="http://www.w3.org/1999/xhtml" class="room-bake" data-theme="', theme, '"',
+                        ' style="width:', w, 'px;height:', h, 'px;background:', bg, ';overflow:hidden">',
+                                                // The whole SVG is parsed as XML, so a bare & anywhere in it is a
+                        // fatal entity error -- which silently became img.onerror and a
+                        // blank screen. (SVG-in-img blocks external loads anyway, so this
+                        // import never fetches; it just has to not break the parse.)
+                        '<style>@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&amp;display=swap");',
+                        css,
+                        // Two things the foreignObject cannot inherit from the real page.
+                        // 1. html/body rules do not apply here -- there is no html or body
+                        //    inside the SVG -- so the base type has to be restated or the
+                        //    whole page renders in the browser default serif.
+                        // 2. Static SVG never runs animations, so .content-section is
+                        //    frozen on fadein's first frame at opacity 0 and the entire
+                        //    section body renders blank.
+                        '.room-bake{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,',
+                        'Menlo,Consolas,monospace;font-size:15px;line-height:1.55;',
+                        // Without this everything that merely inherits its colour renders
+                        // black on black -- only the rules naming a colour survived.
+                        'color:var(--fg)}',
+                        '.room-bake *,.room-bake *::before,.room-bake *::after',
+                        '{animation:none !important;transition:none !important}',
+                        '</style>',
+                        markup,
+                        '</div></foreignObject></svg>'
+                    ].join("");
+
+                    const img = new Image();
+                    img.decoding = "async";
+                    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+                    img.onload = function () {
+                        URL.revokeObjectURL && null;
+                        if (gen !== bakeGen) {
+                            baking = false;
+                            return;
+                        }
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                        ctx.fillStyle = bg;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        dirty = true;
+                        baking = false;
+                        markRender();
+                    };
+                    img.onerror = function () {
+                        baking = false;
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                        ctx.fillStyle = bg;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        dirty = true;
+                        markRender();
+                    };
+                    img.src = url;
+                }
+
+                return {
+                    texture: texture,
+                    holds(app) {
+                        return !!app && appRef === app;
+                    },
+                    adopt(app) {
+                        appRef = app || null;
+                        bake(appRef);
+                    },
+                    repaint() {
+                        // One shot per adopt / theme change -- re-baking every frame is too
+                        // expensive on a phone and the page does not change while looking.
+                    },
+                    sync() {
+                        if (!dirty) return;
+                        dirty = false;
+                        texture.needsUpdate = true;
+                    },
+                    dispose() {
+                        bakeGen += 1;
+                        texture.dispose();
+                        appRef = null;
                     }
                 };
             }
@@ -3100,8 +3228,9 @@
             //             but it is a DOM overlay, so the room cannot occlude it.
             // "canvas" -- the page captured into a texture on the screen mesh: properly
             //             depth-tested inside the scene, but input cannot reach a texture,
-            //             so this pose is look-only. Falls back to "dom" when the
-            //             HTML-in-Canvas API is absent, which is the common case.
+            //             so this pose is look-only. Uses html-in-canvas when the flag is
+            //             on, otherwise a one-shot SVG bake so phones do not fall back to
+            //             CSS3D (which drifts off the bezel at an angle).
             function setScreenMode(mode) {
                 if (!room) return;
                 const surface = room.htmlSurface;
@@ -3111,12 +3240,14 @@
                 const app = document.querySelector(".app");
                 const material = room.screenGlass.material;
                 if (mode === "canvas") {
-                    surface.adopt(app);
+                    // Size the page before baking / capturing so the texture matches the
+                    // layout the CSS3D path was just showing.
                     if (app && room.htmlW) {
                         app.style.width = room.htmlW + "px";
                         app.style.height = room.htmlH + "px";
                         app.style.maxHeight = room.htmlH + "px";
                     }
+                    surface.adopt(app);
                     material.map = surface.texture;
                     material.color.setHex(0xffffff);
                     overlay.style.display = "none";
@@ -3146,6 +3277,10 @@
             }
 
             function syncScreenInteractive() {
+                // The collapse owns the screen while it runs. Without this an exitPointerLock
+                // fired from startBlackHole arrives a frame later and flips the page back to
+                // a DOM overlay mid-animation, detaching it from the monitor again.
+                if (blackHole) return;
                 const usable = player.playing && !player.animating && !inLookMode();
                 // Swap to the captured texture only for mouse-look, where occlusion is the
                 // whole point and nobody is trying to click. Every other pose -- the intro,
@@ -3512,6 +3647,24 @@
                 const quadScene = new THREE.Scene();
                 quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
 
+                // Swallow the monitor as one object. Animating only the screen left the
+                // bezel, neck and foot standing on the desk while the picture spiralled off
+                // them -- which is exactly what read as the page not being attached. Parent
+                // every part of the monitor to a pivot at the screen centre and pull that.
+                const pivot = new THREE.Group();
+                pivot.position.set(room.screen.x, room.screen.y, room.screen.z);
+                room.scene.add(pivot);
+                const parts = [room.screenGlass].concat(room.monitorProxy || []);
+                const homes = parts.map((mesh) => ({
+                    mesh: mesh,
+                    parent: mesh.parent,
+                    position: mesh.position.clone()
+                }));
+                parts.forEach((mesh) => {
+                    mesh.position.sub(pivot.position);
+                    pivot.add(mesh);
+                });
+
                 blackHole = {
                     target: target,
                     material: material,
@@ -3520,11 +3673,10 @@
                     start: performance.now(),
                     done: false,
                     doneAt: 0,
-                    glassBase: room.screenGlass.material.color.clone(),
-                    glassTint: room.screenGlass.material.color.clone(),
                     accent: roomPalette().accent.clone(),
-                    fromPos: room.screenGlass.position.clone(),
-                    fromScale: room.screenGlass.scale.clone()
+                    pivot: pivot,
+                    homes: homes,
+                    pivotHome: pivot.position.clone()
                 };
                 clearPrompt();
                 markRender();
@@ -3532,43 +3684,23 @@
 
             function stepBlackHole(now) {
                 const k = easeInOut(Math.min(1, (now - blackHole.start) / VOID_PULL));
-                const glass = room.screenGlass;
+                const pivot = blackHole.pivot;
 
-                // The page spirals inward as it is drawn down.
+                // Screen, bezel, neck and foot all ride the same pivot, so the monitor goes
+                // in as one object with the page still on it.
                 const shrink = Math.max(1 - k, 0.0001);
-                glass.scale.set(blackHole.fromScale.x * shrink, blackHole.fromScale.y * shrink, 1);
+                pivot.scale.setScalar(shrink);
                 const spin = k * Math.PI * 3;
                 const radius = 0.17 * Math.sin(k * Math.PI);
-                glass.position.set(
-                    blackHole.fromPos.x + Math.cos(spin) * radius,
-                    blackHole.fromPos.y + Math.sin(spin) * radius * 0.6,
-                    blackHole.fromPos.z
+                pivot.position.set(
+                    blackHole.pivotHome.x + Math.cos(spin) * radius,
+                    blackHole.pivotHome.y + Math.sin(spin) * radius * 0.6,
+                    blackHole.pivotHome.z
                 );
-                glass.rotation.z = spin * 0.6;
-
-                // The page is a DOM overlay sitting above the WebGL canvas, so the lens
-                // shader cannot touch it -- left alone it stays crisp and bright while the
-                // room bends around it, and the two read as separate layers. Hand it over
-                // to the scene early instead: it blurs, darkens and dissolves in the first
-                // third of the pull, and from there the only thing being swallowed is the
-                // screen mesh, which is genuinely in the world and genuinely lensed.
-                if (room.screenMode !== "canvas") {
-                    const consumed = Math.min(1, k / 0.45);
-                    const ease = consumed * consumed;
-                    overlay.style.filter =
-                        "blur(" + (ease * 7).toFixed(2) + "px) " +
-                        "brightness(" + (1 - ease * 0.9).toFixed(3) + ") " +
-                        "contrast(" + (1 + ease * 0.6).toFixed(2) + ")";
-                    overlay.style.opacity = (1 - ease).toFixed(3);
-                    // The mesh left behind picks up the accent as it is drained, so the
-                    // monitor does not simply blink to an empty black rectangle.
-                    blackHole.glassTint.copy(blackHole.glassBase)
-                        .lerp(blackHole.accent, ease * 0.55 * (1 - k));
-                    glass.material.color.copy(blackHole.glassTint);
-                }
+                pivot.rotation.z = spin * 0.6;
 
                 // Anchor the singularity to where the screen actually is on the viewport.
-                lensCenter.set(blackHole.fromPos.x, blackHole.fromPos.y, blackHole.fromPos.z);
+                lensCenter.set(blackHole.pivotHome.x, blackHole.pivotHome.y, blackHole.pivotHome.z);
                 lensCenter.project(room.camera);
                 const uniforms = blackHole.material.uniforms;
                 uniforms.u_center.value.set(lensCenter.x * 0.5 + 0.5, lensCenter.y * 0.5 + 0.5);
@@ -3586,7 +3718,7 @@
                 if (k >= 1 && !blackHole.done) {
                     blackHole.done = true;
                     blackHole.doneAt = now;
-                    glass.visible = false;
+                    blackHole.pivot.visible = false;
                     overlay.style.visibility = "hidden";
                     document.body.classList.add("room-void");
                 }
@@ -3602,12 +3734,12 @@
                 blackHole.quadScene.traverse((node) => {
                     if (node.geometry) node.geometry.dispose();
                 });
-                const glass = room.screenGlass;
-                glass.position.copy(blackHole.fromPos);
-                glass.scale.copy(blackHole.fromScale);
-                glass.rotation.z = 0;
-                glass.visible = true;
-                glass.material.color.copy(blackHole.glassBase);
+                blackHole.homes.forEach((home) => {
+                    home.parent.add(home.mesh);
+                    home.mesh.position.copy(home.position);
+                });
+                blackHole.pivot.visible = true;
+                room.scene.remove(blackHole.pivot);
                 overlay.style.visibility = "";
                 overlay.style.filter = "";
                 overlay.style.opacity = "";
@@ -3889,12 +4021,9 @@
                 const title = document.getElementById("room-rotate-title");
                 const copy = document.getElementById("room-rotate-copy");
                 const go = document.getElementById("room-rotate-go");
+                // Deliberately says nothing about what is on the other side.
                 if (title) title.textContent = ready ? "Ready" : "Turn your phone sideways";
-                if (copy) {
-                    copy.textContent = ready
-                        ? "Goes fullscreen when you tap."
-                        : "The room opens in landscape.";
-                }
+                if (copy) copy.textContent = ready ? "Tap to continue." : "This one needs landscape.";
                 if (go) go.hidden = !ready;
                 rotateGate.classList.toggle("is-ready", ready);
             }
