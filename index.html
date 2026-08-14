@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="modus-vivendi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Parsa Taghizadeh — software engineer focused on backend systems, support automation, and Linux infrastructure.">
+    <title>Parsa Taghizadeh — Resume</title>
+    <script>
+        (function () {
+            var saved = localStorage.getItem("resume-theme");
+            var theme = saved === "modus-operandi" ? "modus-operandi" : "modus-vivendi";
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root,
+        [data-theme="modus-vivendi"] {
+            --bg: #000000;
+            --fg: #ffffff;
+            --fg-dim: #989898;
+            --fg-muted: #757575;
+            --fill: rgba(255, 255, 255, 0.08);
+            --fill-strong: rgba(255, 255, 255, 0.14);
+            --selection-bg: rgba(152, 152, 152, 0.45);
+            --selection-fg: #ffffff;
+            --glow: rgba(255, 255, 255, 0.35);
+            --cube-color: #b0b0b0;
+            --cube-emissive: #2a2a2a;
+            --cube-specular: #dddddd;
+            --cube-size: 32px;
+            --panel: rgba(0, 0, 0, 0.82);
+            --chrome: rgba(0, 0, 0, 0.88);
+            --border: #646464;
+            --border-soft: rgba(255, 255, 255, 0.22);
+            --border-mid: rgba(255, 255, 255, 0.38);
+            --border-faint: rgba(255, 255, 255, 0.14);
+            --term-shadow: rgba(255, 255, 255, 0.06);
+            --term-inset: rgba(255, 255, 255, 0.03);
+            --scrollbar-track: #1e1e1e;
+            --scanline: rgba(0, 0, 0, 0.18);
+            --nav-w: 232px;
+            --gap: 20px;
+        }
+
+        [data-theme="modus-operandi"] {
+            --bg: #ffffff;
+            --fg: #000000;
+            --fg-dim: #595959;
+            --fg-muted: #757575;
+            --fill: rgba(0, 0, 0, 0.06);
+            --fill-strong: rgba(0, 0, 0, 0.1);
+            --selection-bg: rgba(89, 89, 89, 0.28);
+            --selection-fg: #000000;
+            --glow: rgba(0, 0, 0, 0.22);
+            --cube-color: #707070;
+            --cube-emissive: #1f1f1f;
+            --cube-specular: #a8a8a8;
+            --cube-size: 32px;
+            --panel: rgba(255, 255, 255, 0.92);
+            --chrome: rgba(255, 255, 255, 0.94);
+            --border: #9f9f9f;
+            --border-soft: rgba(0, 0, 0, 0.18);
+            --border-mid: rgba(0, 0, 0, 0.32);
+            --border-faint: rgba(0, 0, 0, 0.12);
+            --term-shadow: rgba(0, 0, 0, 0.06);
+            --term-inset: rgba(0, 0, 0, 0.02);
+            --scrollbar-track: #f2f2f2;
+            --scanline: transparent;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        ::selection {
+            background: var(--selection-bg);
+            color: var(--selection-fg);
+        }
+
+        ::-moz-selection {
+            background: var(--selection-bg);
+            color: var(--selection-fg);
+        }
+
+        :focus-visible {
+            outline: 1px solid var(--fg);
+            outline-offset: 3px;
+        }
+
+        a {
+            color: var(--fg);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        .header-cube {
+            flex-shrink: 0;
+            width: var(--cube-size);
+            height: var(--cube-size);
+            pointer-events: none;
+            display: block;
+        }
+
+        .term-bar .header-cube {
+            display: block;
+        }
+
+        .mobile-bar .header-cube {
+            display: none;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 2px,
+                var(--scanline) 3px
+            );
+            opacity: 0.22;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 12px;
+            top: -48px;
+            z-index: 20;
+            padding: 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--fg);
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 12px;
+        }
+
+        .app {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: var(--nav-w) minmax(0, 1fr);
+            grid-template-rows: auto 1fr auto;
+            height: 100dvh;
+            height: 100svh;
+            max-height: 100dvh;
+            max-height: 100svh;
+            overflow: hidden;
+        }
+
+        .mobile-bar {
+            display: none;
+            grid-column: 1 / -1;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--chrome);
+        }
+
+        .nav-toggle {
+            font: inherit;
+            color: var(--fg);
+            background: transparent;
+            border: 1px solid var(--fg);
+            padding: 6px 10px;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+        }
+
+        .nav-toggle:hover,
+        .nav-toggle[aria-expanded="true"],
+        .theme-toggle:hover {
+            background: var(--fill);
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        .theme-toggle {
+            font: inherit;
+            color: var(--fg);
+            background: transparent;
+            border: 1px solid var(--border-mid);
+            padding: 6px 10px;
+            cursor: pointer;
+            letter-spacing: 0.06em;
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        .theme-toggle .theme-hint {
+            display: block;
+            margin-top: 2px;
+            color: var(--fg-muted);
+            font-size: 0.62rem;
+            letter-spacing: 0.04em;
+        }
+
+        .mobile-path {
+            min-width: 0;
+            color: var(--fg-dim);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar {
+            grid-row: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 18px;
+            border-right: 1px solid var(--border);
+            background: var(--chrome);
+        }
+
+        .brand {
+            margin-bottom: 28px;
+        }
+
+        .brand-prompt {
+            display: block;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-hint {
+            display: block;
+            margin-top: 4px;
+            color: var(--fg-muted);
+            font-size: 0.78rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            font: inherit;
+            text-align: left;
+            color: var(--fg-dim);
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        .menu-item::before {
+            content: "$ ";
+            color: var(--fg-muted);
+        }
+
+        .menu-item:hover {
+            color: var(--fg);
+            background: var(--fill);
+        }
+
+        .menu-item.active {
+            color: var(--fg);
+            border-color: var(--border-mid);
+            background: var(--fill-strong);
+            font-weight: 700;
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        .backdrop {
+            display: none;
+        }
+
+        .terminal {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+            margin: var(--gap) var(--gap) 12px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: 0 0 28px var(--term-shadow), inset 0 0 40px var(--term-inset);
+        }
+
+        .term-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .term-bar .term-path {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .term-path {
+            min-width: 0;
+            color: var(--fg-dim);
+            font-size: 0.82rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .term-body {
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 22px 24px 28px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--fg) var(--scrollbar-track);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .term-body::-webkit-scrollbar { width: 8px; }
+        .term-body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        .term-body::-webkit-scrollbar-thumb { background: var(--fg); }
+
+        .content-section {
+            display: none;
+            animation: fadein 0.28s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .name {
+            margin: 0 0 4px;
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .role {
+            margin: 0 0 18px;
+            color: var(--fg-dim);
+        }
+
+        .lede, .copy, .muted {
+            margin: 0 0 1em;
+            overflow-wrap: anywhere;
+        }
+
+        .muted, .dates, .loc {
+            color: var(--fg-dim);
+        }
+
+        .section-kicker {
+            margin: 0 0 16px;
+            color: var(--fg-muted);
+            font-size: 0.82rem;
+        }
+
+        .skill-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px 28px;
+        }
+
+        .skill-group h3 {
+            margin: 0 0 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--fg-dim);
+            border-bottom: 1px solid var(--border-soft);
+            padding-bottom: 6px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tags li {
+            border: 1px solid var(--border-mid);
+            padding: 4px 8px;
+            font-size: 0.86rem;
+        }
+
+        .job {
+            border: 1px solid var(--border-mid);
+            margin-bottom: 10px;
+            background: transparent;
+        }
+
+        .gap-note {
+            margin: 0 0 10px;
+            padding: 10px 14px;
+            border: 1px dashed var(--border-soft);
+            color: var(--fg-dim);
+            font-size: 0.9rem;
+        }
+
+        .job summary {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2px 16px;
+            padding: 12px 14px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .job summary::-webkit-details-marker { display: none; }
+
+        .job summary::after {
+            content: "+";
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: center;
+            color: var(--fg-dim);
+        }
+
+        .job[open] summary::after { content: "−"; }
+
+        .job summary:hover {
+            background: var(--fill);
+        }
+
+        .job-role {
+            font-weight: 700;
+        }
+
+        .job-org {
+            grid-column: 1;
+            color: var(--fg-dim);
+            font-size: 0.9rem;
+            overflow-wrap: anywhere;
+        }
+
+        .job-body {
+            padding: 0 14px 14px;
+            border-top: 1px solid var(--border-faint);
+        }
+
+        .job-body ul {
+            margin: 10px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .job-body li {
+            position: relative;
+            padding-left: 1.1em;
+            margin-bottom: 0.65em;
+            overflow-wrap: anywhere;
+        }
+
+        .job-body li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--fg-muted);
+        }
+
+        .project {
+            display: block;
+            border: 1px solid var(--border-mid);
+            padding: 14px;
+            margin-bottom: 10px;
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        .project:hover {
+            background: var(--fill);
+            text-decoration: none;
+        }
+
+        .project-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .project-desc {
+            overflow-wrap: anywhere;
+        }
+
+        .project-link {
+            color: var(--fg-dim);
+            font-size: 0.78rem;
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .edu {
+            border: 1px solid var(--border-mid);
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .edu h3 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .contact-row {
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .contact-row dt {
+            color: var(--fg-muted);
+        }
+
+        .contact-row dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .social-links {
+            grid-column: 2;
+            grid-row: 3;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 var(--gap) max(18px, env(safe-area-inset-bottom, 0px));
+            flex-shrink: 0;
+        }
+
+        .social-link {
+            color: var(--fg);
+            border: 1px solid var(--fg);
+            padding: 8px 14px;
+            text-decoration: none;
+        }
+
+        .social-link:hover {
+            background: var(--fill);
+            text-decoration: none;
+            text-shadow: 0 0 8px var(--glow);
+        }
+
+        @media (max-width: 860px) {
+            :root { --gap: 12px; }
+
+            .app {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+            }
+
+            .mobile-bar {
+                display: flex;
+                min-width: 0;
+                padding-top: max(10px, env(safe-area-inset-top, 0px));
+            }
+
+            .mobile-bar .mobile-path {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .mobile-bar .header-cube { display: block; }
+
+            .term-bar .header-cube { display: none; }
+
+            .nav-toggle {
+                display: none;
+            }
+
+            .sidebar {
+                position: static;
+                grid-row: 2;
+                grid-column: 1;
+                transform: none;
+                width: auto;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 12px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .sidebar::-webkit-scrollbar { display: none; }
+
+            .brand {
+                display: none;
+            }
+
+            .sidebar ul {
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            .menu-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                min-height: 44px;
+                padding: 10px 12px;
+            }
+
+            .theme-toggle {
+                margin-top: 0;
+                margin-left: auto;
+                min-height: 44px;
+                align-self: center;
+            }
+
+            .theme-toggle .theme-hint { display: none; }
+
+            .backdrop { display: none !important; }
+
+            .terminal {
+                grid-column: 1;
+                grid-row: 3;
+                margin: var(--gap);
+                margin-bottom: 8px;
+            }
+
+            .social-links {
+                grid-column: 1;
+                grid-row: 4;
+                padding: 0 var(--gap) max(14px, env(safe-area-inset-bottom, 0px));
+            }
+
+            .skill-grid { grid-template-columns: 1fr; }
+            .term-body { padding: 16px; }
+            .name { font-size: 1.28rem; }
+        }
+
+        @media (max-width: 520px) {
+            html { font-size: 14px; }
+
+            .mobile-path {
+                font-size: 0.82rem;
+            }
+
+            .job summary {
+                grid-template-columns: 1fr auto;
+                gap: 6px 10px;
+            }
+
+            .job-role { grid-column: 1; }
+
+            .job-org {
+                grid-column: 1 / -1;
+            }
+
+            .job summary::after {
+                grid-row: 1;
+                align-self: start;
+            }
+
+            .project-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .social-link {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .contact-row { grid-template-columns: 1fr; gap: 2px; }
+        }
+
+        @media (max-height: 520px) and (max-width: 860px) {
+            .terminal { margin: 8px; margin-bottom: 6px; }
+            .term-body { padding: 12px; }
+            .sidebar { padding: 6px 10px; }
+            .menu-item { min-height: 40px; padding: 8px 10px; }
+            .social-links { padding-bottom: 8px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .scanlines { display: none; }
+        }
+
+        @media print {
+            .scanlines, .sidebar, .mobile-bar, .social-links, .backdrop, .term-bar, .header-cube, .theme-toggle {
+                display: none !important;
+            }
+            html, body {
+                background: #fff;
+                color: #111;
+                overflow: visible;
+            }
+            .app { display: block; }
+            .terminal {
+                margin: 0;
+                border: 0;
+                box-shadow: none;
+                background: #fff;
+            }
+            .term-body { overflow: visible; padding: 0; }
+            .content-section { display: block !important; animation: none; page-break-inside: avoid; margin-bottom: 24px; }
+            a, .muted, .role, .dates, .loc, .job-org, .section-kicker, .gap-note { color: #111; }
+            .job, .project, .edu, .tags li, .gap-note { border-color: #111; }
+            .job-body { display: block !important; }
+            details.job > summary { list-style: none; }
+            details.job > summary::after { content: none; }
+            details.job > .job-body {
+                display: block !important;
+                border-top: 1px solid #111;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="backdrop" id="backdrop" hidden></div>
+
+    <div class="app">
+        <header class="mobile-bar">
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebar">MENU</button>
+            <span class="mobile-path" id="mobile-path">pi@resume:~/$ about</span>
+            <canvas id="header-cube-mobile" class="header-cube" aria-hidden="true"></canvas>
+        </header>
+
+        <nav class="sidebar" id="sidebar" aria-label="Resume sections">
+            <div class="brand">
+                <span class="brand-prompt">pi@resume</span>
+                <span class="brand-hint">ls ~/</span>
+            </div>
+            <ul>
+                <li><button class="menu-item active" type="button" data-target="about">about</button></li>
+                <li><button class="menu-item" type="button" data-target="skills">skills</button></li>
+                <li><button class="menu-item" type="button" data-target="experience">experience</button></li>
+                <li><button class="menu-item" type="button" data-target="projects">projects</button></li>
+                <li><button class="menu-item" type="button" data-target="education">education</button></li>
+                <li><button class="menu-item" type="button" data-target="contact">contact</button></li>
+            </ul>
+            <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to Modus Operandi light theme">
+                <span class="theme-label">Modus Operandi</span>
+                <span class="theme-hint">light theme</span>
+            </button>
+        </nav>
+
+        <main class="terminal" id="main">
+            <div class="term-bar">
+                <div class="term-path" id="term-path">pi@resume:~/$ about</div>
+                <canvas id="header-cube-desktop" class="header-cube" aria-hidden="true"></canvas>
+            </div>
+            <div class="term-body">
+                <section id="about" class="content-section active">
+                    <p class="section-kicker">$ cat about.txt</p>
+                    <h1 class="name">Parsa Taghizadeh</h1>
+                    <p class="role">Software Engineer — Backend &amp; Automation</p>
+                    <p class="lede">Six years building backend systems and internal automation (since Jan 2020). I work on APIs and deployment pipelines, and on tools that take repetitive operations work off other people's plates. Day to day that is mostly Python (Django, FastAPI) on Linux, with Go when a single binary is the right shape.</p>
+                    <p class="copy">Much of my recent work is under NDA: infrastructure, billing automation, internal services. I can talk through the technical approach in an interview even when I cannot name the product.</p>
+                    <p class="copy">I run NixOS and live in Emacs (Evil, Org, Magit). I like systems that are inspectable and repeatable.</p>
+                    <p class="muted">Languages: Persian (native), English (full professional proficiency)</p>
+                </section>
+
+                <section id="skills" class="content-section">
+                    <p class="section-kicker">$ cat skills.txt</p>
+                    <div class="skill-grid">
+                        <div class="skill-group">
+                            <h3>Languages</h3>
+                            <ul class="tags">
+                                <li>Python</li>
+                                <li>Go</li>
+                                <li>SQL</li>
+                                <li>Bash</li>
+                                <li>C</li>
+                                <li>Emacs Lisp</li>
+                                <li>PHP</li>
+                            </ul>
+                        </div>
+                        <div class="skill-group">
+                            <h3>Frameworks</h3>
+                            <ul class="tags">
+                                <li>Django</li>
+                                <li>FastAPI</li>
+                                <li>SQLModel</li>
+                                <li>Textual</li>
+                                <li>Streamlit</li>
+                                <li>Unity</li>
+                                <li>Godot</li>
+                            </ul>
+                        </div>
+                        <div class="skill-group">
+                            <h3>Infrastructure</h3>
+                            <ul class="tags">
+                                <li>Linux</li>
+                                <li>Nix / NixOS</li>
+                                <li>Docker</li>
+                                <li>Nginx</li>
+                                <li>PostgreSQL</li>
+                                <li>SQLite</li>
+                                <li>DuckDB</li>
+                                <li>Tailscale</li>
+                                <li>WHMCS</li>
+                                <li>systemd</li>
+                                <li>Git</li>
+                            </ul>
+                        </div>
+                        <div class="skill-group">
+                            <h3>Focus</h3>
+                            <ul class="tags">
+                                <li>Backend APIs</li>
+                                <li>Ops / support automation</li>
+                                <li>AI automation</li>
+                                <li>LLM integrations</li>
+                                <li>Reproducible deploys</li>
+                                <li>Telegram bots</li>
+                                <li>Declarative systems</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="experience" class="content-section">
+                    <p class="section-kicker">$ cat experience.txt</p>
+
+                    <details class="job" open>
+                        <summary>
+                            <span class="job-role">Software Engineer</span>
+                            <span class="job-org">Bertina Hosting · Apr 2026 – Present · Tehran, Iran</span>
+                        </summary>
+                        <div class="job-body">
+                            <p class="muted">Bertina is an Iranian hosting provider (domains, shared hosting, VPS, email, SSL). I designed and built WHMCS Automation Engine: FastAPI core, PHP WHMCS addon, Markdown knowledge vault. Customer replies are in Persian. The ticket pipeline runs in production; draft-assist surfaces suggest replies to staff and do not send on their own.</p>
+                            <ul>
+                                <li>Classify the request, gather the account, draft a Persian reply, then a second model verifies every factual claim against that account. Fail twice, or hit a destructive action, and a person takes it.</li>
+                                <li>Tool access is policy-as-code, default-deny. Four tiers: read, reply, async approval, in-person for suspend / terminate / refund. Approvals bind to a hash of the exact action shown.</li>
+                                <li>One parameterized SQL path into ~40 GB WHMCS: statement timeouts, least-privilege grants, customer-account writes only through the WHMCS API. Unindexed lastreply scan: 43.8s; with an online index: 0.58s. CI fails any new query that filters a growing table off-index.</li>
+                                <li>Prompt-injection handling is structural, not filter-based: vault pages are trusted, ticket text is quarantined. A prompt inside a customer message cannot become an instruction.</li>
+                                <li>Same core runs Ask Agent (department allowlist redacts fields before the prompt), Agent Rewrite for house style, and an approvals queue. Agent Rewrite never sends the greeting or signature to the model. It returns line numbers; the code slices.</li>
+                                <li>Routing, tone, escalation, and field ACL live in the Markdown vault. Support edits and commits; the core reindexes without a release. On 1,000 real production tickets, about 80% were answered or resolved through follow-ups and clarifying questions without a human; about 20% were escalated with full context (account state, draft reply, verification notes) so support could act in one step.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <p class="gap-note">Feb 2026 – Apr 2026 · no work — nationwide internet blackout in Iran</p>
+
+                    <details class="job">
+                        <summary>
+                            <span class="job-role">Full Stack Engineer</span>
+                            <span class="job-org">Mega FinTech · May 2024 – Feb 2026 · Dubai, UAE (remote)</span>
+                        </summary>
+                        <div class="job-body">
+                            <p class="muted">Internal tools for cryptocurrency exchange operations. Exchange names under NDA.</p>
+                            <ul>
+                                <li>Most of the automation replaced pure manual ops: changing prices and keeping prices in sync across multiple exchanges. Before my tools, staff did that over WhatsApp. Many people texting each other until every exchange had the same number.</li>
+                                <li>Built on the order of twenty internal tools over 21 months: FastAPI (SQLModel) and Django backends, each with a Telegram bot (aiogram, Telethon) or a small web UI. The rest covered other back-office work I cannot name on the page.</li>
+                                <li>Moved deploys onto Nix/NixOS so environments were reproducible across hosts. A rollback was a git revert, not a manual rebuild.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="job">
+                        <summary>
+                            <span class="job-role">Game Developer &amp; Backend Engineer</span>
+                            <span class="job-org">HOOGAMAN · Dec 2021 – May 2024 · Tehran, Iran</span>
+                        </summary>
+                        <div class="job-body">
+                            <ul>
+                                <li>Developed Jaan Jibi / Can Cepper, a multilingual online multiplayer word-quiz game, in Unity.</li>
+                                <li>Took ownership of the Django game backend after the previous engineer left: real-time multiplayer, tournaments, and localization (Persian and Turkish) across client and server.</li>
+                                <li>Mentored junior developers on game client work and backend development.</li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details class="job">
+                        <summary>
+                            <span class="job-role">Backend Developer</span>
+                            <span class="job-org">Alizadeh Cloud Solutions · Jan 2020 – Dec 2021 · Tehran, Iran</span>
+                        </summary>
+                        <div class="job-body">
+                            <p class="muted">First professional programming role. Further product detail is under NDA.</p>
+                            <ul>
+                                <li>Designed and built a Django backend for internal company systems.</li>
+                                <li>Shipped a production REST API with Django REST Framework.</li>
+                                <li>Deployed and operated the service on Linux (Git-based deploys, before Docker/Nix).</li>
+                            </ul>
+                        </div>
+                    </details>
+                </section>
+
+                <section id="projects" class="content-section">
+                    <p class="section-kicker">$ ls ~/proj</p>
+
+                    <div class="project">
+                        <span class="project-title">WHMCS Automation Engine <span class="project-link">private · Bertina Hosting · sole author</span></span>
+                        <span class="project-desc">Agentic support automation I designed and built alone for Bertina, an Iranian hosting provider. Three parts: a FastAPI core, a PHP addon inside WHMCS, and a Markdown knowledge vault in a separate repo. The ticket pipeline classifies each request, gathers the customer account, drafts a Persian reply, and a second model verifies every factual claim against that account. Fail twice, or hit a destructive action, and a person takes it. Tool access is policy-as-code with hash-bound approvals. Vault pages are trusted; ticket text is quarantined so customer prompts cannot become instructions. The same core runs Ask Agent, Agent Rewrite, and a staff approvals queue. In production on the ticket path. On 1,000 real production tickets, about 80% were answered or resolved through follow-ups and clarifying questions without a human; about 20% were escalated with full context (account state, draft reply, verification notes) so support could act in one step.</span>
+                    </div>
+
+                    <a class="project" href="https://github.com/PiTZE/Mein-Proxy" target="_blank" rel="noopener noreferrer">
+                        <span class="project-title">Mein-Proxy <span class="project-link">github.com/PiTZE/Mein-Proxy</span></span>
+                        <span class="project-desc">OpenAI-compatible proxy in Python: <code>/v1/chat/completions</code> and <code>/v1/responses</code>, multi-key rotation, per-key budgets, health and usage stats, optional TUI dashboard.</span>
+                    </a>
+
+                    <a class="project" href="https://github.com/PiTZE/Argus" target="_blank" rel="noopener noreferrer">
+                        <span class="project-title">Argus <span class="project-link">github.com/PiTZE/Argus</span></span>
+                        <span class="project-desc">Built to visualize and search very large CSV data sources and query them in the browser. CSV ingest with type conversion, GZIP storage, column pickers, and a systemd service install.</span>
+                    </a>
+
+                    <a class="project" href="https://github.com/PiTZE/PorTTY" target="_blank" rel="noopener noreferrer">
+                        <span class="project-title">PorTTY <span class="project-link">github.com/PiTZE/PorTTY</span></span>
+                        <span class="project-desc">A real terminal over a link: open a URL in the browser and control a server that way. Single Go binary with default-shell or optional tmux sessions, PWA install, and auto-reconnect.</span>
+                    </a>
+
+                    <a class="project" href="https://github.com/PiTZE/Agent-Mesh" target="_blank" rel="noopener noreferrer">
+                        <span class="project-title">Agent Mesh <span class="project-link">github.com/PiTZE/Agent-Mesh</span></span>
+                        <span class="project-desc">Agent harness for controlling servers, same idea as Hermes and OpenClaw, started before either existed. Go service that turns natural-language requests into shell commands over an OpenAI-compatible API; the mesh is multiple machines linked p2p or over Tailscale. PorTTY began as this project's browser terminal.</span>
+                    </a>
+
+                    <a class="project" href="https://github.com/PiTZE/Scriptorium" target="_blank" rel="noopener noreferrer">
+                        <span class="project-title">Scriptorium <span class="project-link">github.com/PiTZE/Scriptorium</span></span>
+                        <span class="project-desc">My attempt to automate server setup tasks I used to do by hand. Includes ProxyForge: a bash installer for an HTTPS nginx reverse proxy with basic auth, TLS, and firewall rules, a repeatable front door for internal tools.</span>
+                    </a>
+                </section>
+
+                <section id="education" class="content-section">
+                    <p class="section-kicker">$ cat education.txt</p>
+                    <div class="edu">
+                        <h3>Sama Andishe Islamic Azad University</h3>
+                        <p class="muted">Computer Software Engineering · Oct 2021 – Feb 2024</p>
+                    </div>
+                    <div class="edu">
+                        <h3>Sharif University of Technology</h3>
+                        <p class="muted">Computer Software Engineering · Jan 2021 – Jun 2021</p>
+                    </div>
+                    <div class="edu">
+                        <h3>Shamsipour Technical and Vocational College</h3>
+                        <p class="muted">Computer Software Engineering · Jul 2018 – Dec 2020</p>
+                    </div>
+                </section>
+
+                <section id="contact" class="content-section">
+                    <p class="section-kicker">$ cat contact.txt</p>
+                    <dl>
+                        <div class="contact-row">
+                            <dt>Phone</dt>
+                            <dd><a href="tel:+989390076855">+98 939 007 6855</a></dd>
+                        </div>
+                        <div class="contact-row">
+                            <dt>Email</dt>
+                            <dd><a href="mailto:pi.tze@protonmail.com">pi.tze@protonmail.com</a></dd>
+                        </div>
+                        <div class="contact-row">
+                            <dt>GitHub</dt>
+                            <dd><a href="https://github.com/PiTZE" target="_blank" rel="noopener noreferrer">github.com/PiTZE</a></dd>
+                        </div>
+                        <div class="contact-row">
+                            <dt>LinkedIn</dt>
+                            <dd><a href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank" rel="noopener noreferrer">linkedin.com/in/parsa-taghizadeh-17a56722a</a></dd>
+                        </div>
+                    </dl>
+                </section>
+            </div>
+        </main>
+
+        <div class="social-links">
+            <a class="social-link" href="https://github.com/PiTZE" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="social-link" href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const THEMES = {
+                "modus-vivendi": {
+                    label: "Modus Operandi",
+                    hint: "light theme",
+                    mobileLabel: "OPERANDI",
+                    next: "modus-operandi",
+                    metaColor: "#000000",
+                    ariaLabel: "Switch to Modus Operandi light theme"
+                },
+                "modus-operandi": {
+                    label: "Modus Vivendi",
+                    hint: "dark theme",
+                    mobileLabel: "VIVENDI",
+                    next: "modus-vivendi",
+                    metaColor: "#ffffff",
+                    ariaLabel: "Switch to Modus Vivendi dark theme"
+                }
+            };
+
+            function getTheme() {
+                return document.documentElement.dataset.theme === "modus-operandi"
+                    ? "modus-operandi"
+                    : "modus-vivendi";
+            }
+
+            function applyTheme(theme, persist) {
+                document.documentElement.dataset.theme = theme;
+                const config = THEMES[theme];
+                const meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) meta.setAttribute("content", config.metaColor);
+
+                document.querySelectorAll(".theme-toggle").forEach((button) => {
+                    button.setAttribute("aria-label", config.ariaLabel);
+                    const label = button.querySelector(".theme-label");
+                    const hint = button.querySelector(".theme-hint");
+                    if (label) {
+                        label.textContent = window.matchMedia("(max-width: 860px)").matches
+                            ? config.mobileLabel
+                            : config.label;
+                    }
+                    if (hint) hint.textContent = config.hint;
+                });
+
+                if (typeof window.updateHeaderCubeTheme === "function") {
+                    window.updateHeaderCubeTheme();
+                }
+
+                if (persist) {
+                    localStorage.setItem("resume-theme", theme);
+                }
+            }
+
+            applyTheme(getTheme(), false);
+
+            document.querySelectorAll(".theme-toggle").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const next = THEMES[getTheme()].next;
+                    applyTheme(next, true);
+                });
+            });
+
+            window.addEventListener("resize", () => applyTheme(getTheme(), false));
+        })();
+    </script>
+    <script>
+        (function () {
+            const headerCanvases = [
+                document.getElementById("header-cube-mobile"),
+                document.getElementById("header-cube-desktop"),
+            ].filter(Boolean);
+            const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const cubeMaterials = [];
+
+            function readCubeColors() {
+                const style = getComputedStyle(document.documentElement);
+                function hex(name) {
+                    return parseInt(style.getPropertyValue(name).trim().replace("#", ""), 16);
+                }
+                return {
+                    color: hex("--cube-color"),
+                    emissive: hex("--cube-emissive"),
+                    specular: hex("--cube-specular")
+                };
+            }
+
+            function cubeCssSize() {
+                const rootStyle = getComputedStyle(document.documentElement);
+                return parseInt(rootStyle.getPropertyValue("--cube-size"), 10) || 32;
+            }
+
+            function syncRendererSize(viewer) {
+                const px = cubeCssSize(viewer.canvas);
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                viewer.renderer.setPixelRatio(dpr);
+                viewer.renderer.setSize(px, px, false);
+            }
+
+            function makeCube() {
+                const colors = readCubeColors();
+                const geometry = new THREE.BoxGeometry(0.72, 0.72, 0.72);
+                const material = new THREE.MeshPhongMaterial({
+                    color: colors.color,
+                    emissive: colors.emissive,
+                    shininess: 90,
+                    specular: colors.specular,
+                    transparent: true,
+                    opacity: 0.92
+                });
+                const cube = new THREE.Mesh(geometry, material);
+                const edges = new THREE.EdgesGeometry(geometry);
+                const wireMaterial = new THREE.LineBasicMaterial({
+                    color: colors.color,
+                    transparent: true,
+                    opacity: 0.85
+                });
+                const wire = new THREE.LineSegments(edges, wireMaterial);
+                cube.add(wire);
+                cubeMaterials.push({ material, wireMaterial, pointLight: null });
+                return cube;
+            }
+
+            function addLights(scene) {
+                scene.add(new THREE.AmbientLight(0xcccccc, 0.65));
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+                directionalLight.position.set(1, 2, 1).normalize();
+                scene.add(directionalLight);
+                const colors = readCubeColors();
+                const pointLight = new THREE.PointLight(colors.color, 0.85, 100);
+                pointLight.position.set(-2, -1, 2);
+                scene.add(pointLight);
+                const entry = cubeMaterials[cubeMaterials.length - 1];
+                if (entry) entry.pointLight = pointLight;
+            }
+
+            function initHeaderViewer(canvas) {
+                if (reduceMotion || typeof THREE === "undefined" || !canvas) return null;
+                try {
+                    const px = cubeCssSize();
+                    const scene = new THREE.Scene();
+                    const cam = 1.05;
+                    const camera = new THREE.OrthographicCamera(-cam, cam, cam, -cam, 0.1, 100);
+                    camera.position.z = 5;
+                    const renderer = new THREE.WebGLRenderer({
+                        canvas: canvas,
+                        alpha: true,
+                        antialias: true,
+                        powerPreference: "low-power"
+                    });
+                    renderer.setClearColor(0x000000, 0);
+                    const cube = makeCube();
+                    cube.position.set(0, 0, 0);
+                    scene.add(cube);
+                    addLights(scene);
+                    const viewer = {
+                        canvas,
+                        scene,
+                        camera,
+                        renderer,
+                        cube,
+                        resize() {
+                            syncRendererSize(viewer);
+                        }
+                    };
+                    syncRendererSize(viewer);
+                    return viewer;
+                } catch (error) {
+                    console.error("Header cube init failed:", error);
+                    canvas.style.display = "none";
+                    return null;
+                }
+            }
+
+            const headerViewers = headerCanvases
+                .map((canvas) => initHeaderViewer(canvas))
+                .filter(Boolean);
+
+            window.updateHeaderCubeTheme = function () {
+                const colors = readCubeColors();
+                cubeMaterials.forEach((entry) => {
+                    entry.material.color.setHex(colors.color);
+                    entry.material.emissive.setHex(colors.emissive);
+                    entry.material.specular.setHex(colors.specular);
+                    entry.wireMaterial.color.setHex(colors.color);
+                    if (entry.pointLight) entry.pointLight.color.setHex(colors.color);
+                });
+            };
+
+            function animate() {
+                requestAnimationFrame(animate);
+                headerViewers.forEach((viewer) => {
+                    const style = getComputedStyle(viewer.canvas);
+                    if (style.display === "none" || style.visibility === "hidden") return;
+                    if (viewer.cube) {
+                        viewer.cube.rotation.x += 0.003;
+                        viewer.cube.rotation.y += 0.004;
+                    }
+                    viewer.renderer.render(viewer.scene, viewer.camera);
+                });
+            }
+
+            function onWindowResize() {
+                headerViewers.forEach((viewer) => viewer.resize());
+            }
+
+            if (headerViewers.length) {
+                animate();
+                window.addEventListener("resize", onWindowResize);
+                if ("ResizeObserver" in window) {
+                    const observer = new ResizeObserver(() => onWindowResize());
+                    headerCanvases.forEach((canvas) => observer.observe(canvas));
+                }
+            } else {
+                headerCanvases.forEach((canvas) => {
+                    canvas.style.display = "none";
+                });
+            }
+
+            const sidebar = document.getElementById("sidebar");
+            const toggle = document.getElementById("nav-toggle");
+            const backdrop = document.getElementById("backdrop");
+            const termPath = document.getElementById("term-path");
+            const mobilePath = document.getElementById("mobile-path");
+            const menuItems = document.querySelectorAll(".menu-item");
+            const sections = document.querySelectorAll(".content-section");
+
+            function setNavOpen(open) {
+                if (window.matchMedia("(max-width: 860px)").matches) return;
+                sidebar.classList.toggle("open", open);
+                backdrop.classList.toggle("show", open);
+                backdrop.hidden = !open;
+                if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
+            }
+
+            function switchContent(targetId) {
+                const target = document.getElementById(targetId);
+                if (!target) return;
+                sections.forEach((section) => {
+                    section.classList.toggle("active", section.id === targetId);
+                });
+                menuItems.forEach((item) => {
+                    item.classList.toggle("active", item.getAttribute("data-target") === targetId);
+                });
+                const prompt = "pi@resume:~/$ " + targetId;
+                if (termPath) termPath.textContent = prompt;
+                if (mobilePath) mobilePath.textContent = prompt;
+                document.querySelector(".term-body").scrollTop = 0;
+                setNavOpen(false);
+            }
+
+            menuItems.forEach((item) => {
+                item.addEventListener("click", () => switchContent(item.getAttribute("data-target")));
+            });
+
+            if (toggle) {
+                toggle.addEventListener("click", () => setNavOpen(!sidebar.classList.contains("open")));
+            }
+            if (backdrop) {
+                backdrop.addEventListener("click", () => setNavOpen(false));
+            }
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape") setNavOpen(false);
+            });
+        })();
+    </script>
+</body>
+</html>
