@@ -11,6 +11,9 @@
             var saved = localStorage.getItem("resume-theme");
             var theme = saved === "modus-operandi" ? "modus-operandi" : "modus-vivendi";
             document.documentElement.dataset.theme = theme;
+            if (new URLSearchParams(location.search).get("embed") === "1") {
+                document.documentElement.dataset.embed = "1";
+            }
         })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -190,18 +193,6 @@
             background: var(--chrome);
         }
 
-        .nav-toggle {
-            font: inherit;
-            color: var(--fg);
-            background: transparent;
-            border: 1px solid var(--fg);
-            padding: 6px 10px;
-            cursor: pointer;
-            letter-spacing: 0.08em;
-        }
-
-        .nav-toggle:hover,
-        .nav-toggle[aria-expanded="true"],
         .theme-toggle:hover {
             background: var(--fill);
             text-shadow: 0 0 6px var(--glow);
@@ -226,6 +217,11 @@
             color: var(--fg-muted);
             font-size: 0.62rem;
             letter-spacing: 0.04em;
+        }
+
+        .theme-toggle .theme-label {
+            display: inline-block;
+            min-width: 14ch;
         }
 
         .mobile-path {
@@ -299,10 +295,6 @@
             background: var(--fill-strong);
             font-weight: 700;
             text-shadow: 0 0 6px var(--glow);
-        }
-
-        .backdrop {
-            display: none;
         }
 
         .terminal {
@@ -616,6 +608,437 @@
             text-shadow: 0 0 8px var(--glow);
         }
 
+        button.social-link {
+            font: inherit;
+            background: transparent;
+            cursor: pointer;
+            min-width: 3.2rem;
+        }
+
+        html[data-embed="1"] .room-enter,
+        html[data-embed="1"] #room-layer,
+        html[data-embed="1"] #room-rotate {
+            display: none !important;
+        }
+
+        body.room-active .scanlines,
+        body.room-active .skip-link {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.room-active .app {
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* overflow must stay visible here: an overflow clip on a CSS3DObject's own
+           element makes Chrome flatten the subtree and stop hit-testing into it, which
+           kills every click, hover and scroll on the projected page. .app is sized to
+           this element exactly and does its own clipping, so nothing escapes anyway. */
+        .monitor-html {
+            overflow: visible;
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        #room-layer {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            background: var(--bg);
+            /* Stops the browser claiming drags for scroll/zoom before the room sees them. */
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body.room-active #room-layer {
+            display: block;
+        }
+
+        #room-gl {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #room-css {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* The layer suppresses selection so drags become look/move, but the page projected
+           onto the monitor is still a page. */
+        #room-layer .app {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        #monitor-overlay {
+            overflow: visible;
+            background: var(--bg);
+        }
+
+        /* Staging host for the HTML-in-Canvas path. The browser skips painting for
+           display:none / visibility:hidden subtrees, and drawElementImage can only
+           capture what is actually painted -- so this is clipped to a 1px window
+           instead of hidden. */
+        .hic-stage {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            pointer-events: none;
+            contain: strict;
+        }
+
+        /* The aftermath of the black hole: pure black over the room, then one word. */
+        #room-void {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            display: grid;
+            place-items: center;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 1s ease;
+        }
+
+        body.room-void #room-void {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #room-void span {
+            color: #ffffff;
+            font-size: clamp(2.6rem, 9vw, 7rem);
+            font-weight: 400;
+            letter-spacing: 0.42em;
+            text-indent: 0.42em;
+            opacity: 0;
+            transition: opacity 2.6s ease 0.9s;
+        }
+
+        body.room-void #room-void span {
+            opacity: 1;
+        }
+
+        /* Keep the way out reachable and legible above the void. */
+        body.room-void #room-hud {
+            z-index: 6;
+        }
+
+        body.room-void .hud-keys,
+        body.room-void .hud-prompt,
+        body.room-void .hud-cross,
+        body.room-void .touch-ui {
+            display: none;
+        }
+
+        #room-hud {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            color: var(--fg);
+            opacity: 0;
+            transition: opacity 0.45s ease;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+        }
+
+        body.room-playing #room-hud {
+            opacity: 1;
+        }
+
+        /* Quiet by default; the room is the thing worth looking at. */
+        #room-hud .room-exit {
+            position: absolute;
+            top: max(14px, env(safe-area-inset-top, 0px));
+            right: max(16px, env(safe-area-inset-right, 0px));
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            font: inherit;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            color: var(--fg-muted);
+            background: transparent;
+            border: 0;
+            padding: 6px 2px;
+            cursor: pointer;
+        }
+
+        #room-hud .room-exit:hover {
+            color: var(--fg);
+        }
+
+        .hud-keys {
+            position: absolute;
+            left: max(18px, env(safe-area-inset-left, 0px));
+            bottom: max(16px, env(safe-area-inset-bottom, 0px));
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px 16px;
+            max-width: 62vw;
+            color: var(--fg-muted);
+        }
+
+        .hud-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .hud-keys kbd {
+            font: inherit;
+            font-size: 0.64rem;
+            line-height: 1.5;
+            min-width: 1.6em;
+            padding: 1px 5px;
+            text-align: center;
+            color: var(--fg-dim);
+            background: var(--fill);
+            border: 1px solid var(--border-soft);
+            border-bottom-width: 2px;
+            border-radius: 3px;
+        }
+
+        /* Contextual action, sitting just under the crosshair where the eye already is. */
+        /* Below the monitor rather than over it -- a prompt that covers the thing you are
+           being prompted about is worse than no prompt. */
+        .hud-prompt {
+            position: absolute;
+            left: 50%;
+            top: 72%;
+            transform: translateX(-50%);
+            padding: 6px 13px;
+            border: 1px solid var(--border-mid);
+            background: var(--chrome);
+            color: var(--fg-dim);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.16s ease;
+        }
+
+        .hud-prompt.show {
+            opacity: 1;
+        }
+
+        .hud-prompt b {
+            color: var(--fg);
+            font-weight: 700;
+        }
+
+        .hud-cross {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 3px;
+            height: 3px;
+            margin: -1.5px 0 0 -1.5px;
+            border-radius: 50%;
+            background: var(--fg);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        body.room-look .hud-cross {
+            opacity: 0.5;
+        }
+
+        /* -- touch controls ------------------------------------------------------- */
+
+        .touch-ui {
+            position: absolute;
+            inset: 0;
+            display: none;
+            pointer-events: none;
+        }
+
+        body.room-touch .touch-ui {
+            display: block;
+        }
+
+        body.room-touch .hud-keys {
+            display: none;
+        }
+
+        /* Floating stick: the base is placed wherever the thumb lands, which is what
+           every mobile shooter does -- a fixed pad forces the thumb to hunt for it. */
+        .touch-stick {
+            position: absolute;
+            width: 128px;
+            height: 128px;
+            margin: -64px 0 0 -64px;
+            border: 1px solid var(--border-soft);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.14s ease;
+        }
+
+        .touch-stick.active {
+            opacity: 1;
+        }
+
+        .touch-nub {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 54px;
+            height: 54px;
+            margin: -27px 0 0 -27px;
+            border: 1px solid var(--border-mid);
+            border-radius: 50%;
+            background: var(--fill-strong);
+        }
+
+        .touch-stick.sprint .touch-nub {
+            border-color: var(--fg);
+        }
+
+        .touch-buttons {
+            position: absolute;
+            right: max(20px, env(safe-area-inset-right, 0px));
+            bottom: max(20px, env(safe-area-inset-bottom, 0px));
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .touch-col {
+            display: grid;
+            gap: 10px;
+            justify-items: stretch;
+        }
+
+        .touch-btn {
+            pointer-events: auto;
+            touch-action: none;
+            font: inherit;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            color: var(--fg);
+            background: var(--chrome);
+            border: 1px solid var(--border-mid);
+            border-radius: 999px;
+            min-height: 44px;
+            min-width: 74px;
+            padding: 0 16px;
+            cursor: pointer;
+        }
+
+        .touch-btn:active,
+        .touch-btn.held {
+            background: var(--fill-strong);
+            border-color: var(--fg);
+        }
+
+        .touch-jump {
+            min-width: 86px;
+            min-height: 86px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        /* -- rotate-to-landscape gate --------------------------------------------- */
+
+        #room-rotate {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--fg);
+            text-align: center;
+        }
+
+        #room-rotate[hidden] {
+            display: none;
+        }
+
+        .rotate-card {
+            max-width: 20rem;
+        }
+
+        .rotate-phone {
+            width: 68px;
+            height: 112px;
+            margin: 0 auto 26px;
+            border: 2px solid var(--fg);
+            border-radius: 10px;
+            position: relative;
+            animation: rotate-hint 2.6s ease-in-out infinite;
+        }
+
+        .rotate-phone::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 7px;
+            width: 22px;
+            height: 2px;
+            margin-left: -11px;
+            background: var(--fg-muted);
+        }
+
+        @keyframes rotate-hint {
+            0%, 30% { transform: rotate(0deg); }
+            60%, 100% { transform: rotate(-90deg); }
+        }
+
+        .rotate-title {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .rotate-copy {
+            margin: 0 0 22px;
+            color: var(--fg-muted);
+            font-size: 0.85rem;
+        }
+
+        #room-rotate button {
+            font: inherit;
+            font-size: 0.8rem;
+            color: var(--fg);
+            background: transparent;
+            border: 1px solid var(--border-mid);
+            padding: 10px 18px;
+            min-height: 44px;
+            cursor: pointer;
+        }
+
+        /* Screen readers and the 3D room never see this; it exists only on paper, where
+           the live site's address is the one thing a printout cannot carry on its own. */
+        .print-url {
+            display: none;
+        }
+
+        .monitor-frame {
+            width: 1280px;
+            height: 800px;
+            border: 0;
+            background: var(--bg);
+            pointer-events: auto;
+        }
+
         @media (max-width: 860px) {
             :root { --gap: 12px; }
 
@@ -638,10 +1061,6 @@
             .mobile-bar .header-cube { display: block; }
 
             .term-bar .header-cube { display: none; }
-
-            .nav-toggle {
-                display: none;
-            }
 
             .sidebar {
                 position: static;
@@ -680,15 +1099,21 @@
             }
 
             .theme-toggle {
-                margin-top: 0;
-                margin-left: auto;
+                position: absolute;
+                right: max(12px, env(safe-area-inset-right, 0px));
+                bottom: max(12px, env(safe-area-inset-bottom, 0px));
+                z-index: 5;
+                margin: 0;
                 min-height: 44px;
-                align-self: center;
+                background: var(--chrome);
             }
 
             .theme-toggle .theme-hint { display: none; }
 
-            .backdrop { display: none !important; }
+            .theme-toggle .theme-label {
+                min-width: 9ch;
+                text-align: center;
+            }
 
             .terminal {
                 grid-column: 1;
@@ -700,7 +1125,8 @@
             .social-links {
                 grid-column: 1;
                 grid-row: 4;
-                padding: 0 var(--gap) max(14px, env(safe-area-inset-bottom, 0px));
+                align-items: center;
+                padding: max(12px, env(safe-area-inset-bottom, 0px)) max(6.25rem, calc(env(safe-area-inset-right, 0px) + 5.5rem)) max(12px, env(safe-area-inset-bottom, 0px)) var(--gap);
             }
 
             .skill-grid { grid-template-columns: 1fr; }
@@ -768,7 +1194,7 @@
             }
 
             .social-link {
-                padding: 10px 12px;
+                padding: 6px 12px;
                 font-size: 0.85rem;
                 min-width: 8.5rem;
                 min-height: 44px;
@@ -785,7 +1211,8 @@
             .term-body { padding: 12px; }
             .sidebar { padding: 6px 10px; }
             .menu-item { min-height: 40px; padding: 8px 10px; }
-            .social-links { padding-bottom: 8px; }
+            .social-links { padding-top: 8px; padding-bottom: 8px; }
+            .theme-toggle { bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -796,8 +1223,76 @@
             .scanlines { display: none; }
         }
 
+        /* Inside the room the page is laid out on a 1152px monitor, not on the device's
+           screen -- but the breakpoints above key off the viewport and cannot know that, so
+           a phone would render the panel in its mobile layout (and drop the absolutely
+           positioned theme toggle on top of the footer). These restore the desktop layout
+           for the projected page only. On desktop they simply restate the defaults. */
+        body.room-active .app {
+            --gap: 20px;
+            grid-template-columns: var(--nav-w) minmax(0, 1fr);
+            grid-template-rows: auto 1fr auto;
+        }
+
+        body.room-active .mobile-bar { display: none; }
+        body.room-active .term-bar .header-cube { display: block; }
+
+        body.room-active .sidebar {
+            grid-row: 1 / -1;
+            grid-column: 1;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            padding: 22px 18px;
+            overflow: visible;
+            border-right: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        body.room-active .brand { display: block; }
+        body.room-active .sidebar ul { flex-direction: column; gap: 4px; }
+
+        body.room-active .menu-item {
+            flex: 0 0 auto;
+            min-height: 0;
+            padding: 8px 10px;
+            white-space: normal;
+        }
+
+        body.room-active .theme-toggle {
+            position: static;
+            margin: auto 0 0;
+            min-height: 0;
+            background: transparent;
+        }
+
+        body.room-active .theme-toggle .theme-hint { display: block; }
+        body.room-active .theme-toggle .theme-label { min-width: 14ch; text-align: left; }
+
+        body.room-active .terminal {
+            grid-column: 2;
+            grid-row: 2;
+            margin: var(--gap) var(--gap) 12px;
+        }
+
+        body.room-active .social-links {
+            grid-column: 2;
+            grid-row: 3;
+            padding: 0 var(--gap) 18px;
+        }
+
+        body.room-active .skill-grid { grid-template-columns: 1fr 1fr; }
+        body.room-active .term-body { padding: 22px 24px 28px; }
+        body.room-active .name { font-size: 1.55rem; }
+        body.room-active .role { display: block; }
+        body.room-active .role-sub::before { content: ", "; }
+        body.room-active .about-langs { display: block; }
+        body.room-active .about-langs .about-langs-label::after { content: " "; }
+        body.room-active .about-langs .lang-wrap { display: inline; }
+        body.room-active .about-langs .lang-wrap span + span::before { content: ", "; }
+
         @media print {
-            .scanlines, .sidebar, .mobile-bar, .social-links, .backdrop, .term-bar, .header-cube, .theme-toggle {
+            .scanlines, .sidebar, .mobile-bar, .social-links, .term-bar, .header-cube, .theme-toggle, #room-layer, #room-rotate {
                 display: none !important;
             }
             html, body {
@@ -805,12 +1300,29 @@
                 color: #111;
                 overflow: visible;
             }
-            .app { display: block; }
+            .app {
+                display: block;
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+            .print-url {
+                display: block;
+                margin: 0 0 16px;
+                font-size: 0.86rem;
+                letter-spacing: 0.02em;
+            }
+            .print-url a {
+                color: #111;
+                text-decoration: none;
+            }
             .terminal {
+                display: block;
                 margin: 0;
                 border: 0;
                 box-shadow: none;
                 background: #fff;
+                min-height: 0;
             }
             .term-body { overflow: visible; padding: 0; }
             .content-section { display: block !important; animation: none; page-break-inside: avoid; margin-bottom: 24px; }
@@ -829,11 +1341,9 @@
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <div class="scanlines" aria-hidden="true"></div>
-    <div class="backdrop" id="backdrop" hidden></div>
 
     <div class="app">
         <header class="mobile-bar">
-            <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="sidebar">MENU</button>
             <span class="mobile-path" id="mobile-path">pi@resume:~/$ about</span>
             <canvas id="header-cube-mobile" class="header-cube" aria-hidden="true"></canvas>
         </header>
@@ -856,6 +1366,8 @@
                 <span class="theme-hint">light theme</span>
             </button>
         </nav>
+
+        <p class="print-url"><a href="https://pitze.github.io/">https://pitze.github.io/</a></p>
 
         <main class="terminal" id="main">
             <div class="term-bar">
@@ -891,6 +1403,7 @@
                                 <li>Bash</li>
                                 <li>C</li>
                                 <li>Emacs Lisp</li>
+                                <li>Common Lisp</li>
                                 <li>PHP</li>
                             </ul>
                         </div>
@@ -920,6 +1433,7 @@
                                 <li>WHMCS</li>
                                 <li>systemd</li>
                                 <li>Git</li>
+                                <li>SBCL</li>
                             </ul>
                         </div>
                         <div class="skill-group">
@@ -938,7 +1452,7 @@
                 </section>
 
                 <section id="experience" class="content-section">
-                    <p class="section-kicker">$ cat experience.txt</p>
+                    <p class="section-kicker">$ cat xp.txt</p>
 
                     <details class="job" open>
                         <summary>
@@ -1091,7 +1605,48 @@
 
         <div class="social-links">
             <a class="social-link" href="https://github.com/PiTZE" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <button class="social-link room-enter" id="room-enter" type="button" aria-label="Look around">?</button>
             <a class="social-link" href="https://www.linkedin.com/in/parsa-taghizadeh-17a56722a/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        </div>
+    </div>
+
+    <div id="room-layer" hidden>
+        <canvas id="room-gl"></canvas>
+        <div id="monitor-overlay" class="monitor-html"></div>
+        <div id="room-void" aria-hidden="true"><span>Gone</span></div>
+        <div id="room-hud">
+            <button class="room-exit" id="room-exit" type="button">
+                <kbd>Esc</kbd> leave
+            </button>
+            <div class="hud-cross" aria-hidden="true"></div>
+            <div class="hud-prompt" id="room-prompt" aria-live="polite"></div>
+            <div class="hud-keys" id="room-keys">
+                <span class="hud-chip"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>move</span>
+                <span class="hud-chip"><kbd>Shift</kbd>sprint</span>
+                <span class="hud-chip"><kbd>Space</kbd>jump</span>
+                <span class="hud-chip"><kbd>E</kbd>sit</span>
+                <span class="hud-chip"><kbd>Esc</kbd>use the screen</span>
+            </div>
+            <div class="touch-ui" id="touch-ui">
+                <div class="touch-stick" id="touch-stick" aria-hidden="true">
+                    <span class="touch-nub" id="touch-nub"></span>
+                </div>
+                <div class="touch-buttons">
+                    <div class="touch-col">
+                        <button class="touch-btn" id="touch-use" type="button">USE</button>
+                        <button class="touch-btn" id="touch-sit" type="button">SIT</button>
+                    </div>
+                    <button class="touch-btn touch-jump" id="touch-jump" type="button">JUMP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="room-rotate" hidden>
+        <div class="rotate-card">
+            <div class="rotate-phone" aria-hidden="true"></div>
+            <p class="rotate-title">Turn your phone sideways</p>
+            <p class="rotate-copy">The room opens in landscape.</p>
+            <button type="button" id="room-rotate-cancel">Never mind</button>
         </div>
     </div>
 
@@ -1142,6 +1697,9 @@
 
                 if (typeof window.updateHeaderCubeTheme === "function") {
                     window.updateHeaderCubeTheme();
+                }
+                if (typeof window.updateRoomTheme === "function") {
+                    window.updateRoomTheme();
                 }
 
                 if (persist) {
@@ -1284,6 +1842,10 @@
                 });
             };
 
+            // This used to bail out while the room was open, on the assumption the cube was
+            // off-screen. It isn't -- the page it lives in is on the monitor, so bailing
+            // froze the cube on its last frame and a theme switch recoloured the material
+            // with nothing left to redraw it. Two 32px canvases cost nothing; keep drawing.
             function animate() {
                 requestAnimationFrame(animate);
                 headerViewers.forEach((viewer) => {
@@ -1314,21 +1876,10 @@
                 });
             }
 
-            const sidebar = document.getElementById("sidebar");
-            const toggle = document.getElementById("nav-toggle");
-            const backdrop = document.getElementById("backdrop");
             const termPath = document.getElementById("term-path");
             const mobilePath = document.getElementById("mobile-path");
             const menuItems = document.querySelectorAll(".menu-item");
             const sections = document.querySelectorAll(".content-section");
-
-            function setNavOpen(open) {
-                if (window.matchMedia("(max-width: 860px)").matches) return;
-                sidebar.classList.toggle("open", open);
-                backdrop.classList.toggle("show", open);
-                backdrop.hidden = !open;
-                if (toggle) toggle.setAttribute("aria-expanded", open ? "true" : "false");
-            }
 
             function switchContent(targetId) {
                 const target = document.getElementById(targetId);
@@ -1342,22 +1893,1991 @@
                 const prompt = "pi@resume:~/$ " + targetId;
                 if (termPath) termPath.textContent = prompt;
                 if (mobilePath) mobilePath.textContent = prompt;
-                document.querySelector(".term-body").scrollTop = 0;
-                setNavOpen(false);
+                const termBody = document.querySelector(".term-body");
+                if (termBody) termBody.scrollTop = 0;
             }
 
             menuItems.forEach((item) => {
                 item.addEventListener("click", () => switchContent(item.getAttribute("data-target")));
             });
+        })();
+    </script>
+    <script>
+        (function () {
+            if (document.documentElement.dataset.embed === "1") return;
 
-            if (toggle) {
-                toggle.addEventListener("click", () => setNavOpen(!sidebar.classList.contains("open")));
+            const enterBtn = document.getElementById("room-enter");
+            const exitBtn = document.getElementById("room-exit");
+            const layer = document.getElementById("room-layer");
+            const prompt = document.getElementById("room-prompt");
+            const rotateGate = document.getElementById("room-rotate");
+            const rotateCancel = document.getElementById("room-rotate-cancel");
+            const stickEl = document.getElementById("touch-stick");
+            const nubEl = document.getElementById("touch-nub");
+            const jumpBtn = document.getElementById("touch-jump");
+            const sitBtn = document.getElementById("touch-sit");
+            const useBtn = document.getElementById("touch-use");
+            const glCanvas = document.getElementById("room-gl");
+            const overlay = document.getElementById("monitor-overlay");
+            const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            if (!enterBtn || !layer) return;
+
+            // HTML-in-Canvas (chrome://flags/#canvas-draw-element). When present, the page
+            // can be captured into a real GPU texture, so the screen sits *inside* the
+            // scene -- depth-tested, occluded by the bezel and the room -- instead of
+            // floating above the WebGL canvas as a CSS3D overlay. The texture cannot
+            // receive input, so it is used for the look-around pose only and we hand back
+            // to the live CSS3D page the moment the pointer is free. Everywhere else this
+            // is simply absent and the CSS3D path is the whole story.
+            const HTML_CANVAS_SUPPORTED = (function () {
+                try {
+                    const probe = document.createElement("canvas").getContext("2d");
+                    return !!probe && typeof probe.drawElementImage === "function";
+                } catch (error) {
+                    return false;
+                }
+            })();
+
+            // A touch device gets the stick-and-look scheme; everything else gets pointer
+            // lock. This is about the input available, not the screen width -- a small
+            // window on a desktop should still use the mouse.
+            function isTouchDevice() {
+                return window.matchMedia("(pointer: coarse)").matches ||
+                    (navigator.maxTouchPoints || 0) > 0;
             }
-            if (backdrop) {
-                backdrop.addEventListener("click", () => setNavOpen(false));
+
+            function isLandscape() {
+                return window.matchMedia("(orientation: landscape)").matches ||
+                    window.innerWidth > window.innerHeight;
             }
+
+            const ROOM_SCRIPTS = [
+                "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js",
+                "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"
+            ];
+            const CHAIR_MODEL_URLS = ["models/chair.glb"];
+            // The screen is 0.80 x 0.45 world units, exactly 16:9, so the page's logical
+            // size matches its aspect and no letterboxing is needed.
+            const SCREEN_CSS_W = 1152;
+            const SCREEN_CSS_H = 648;
+            // The capture is rendered at 2x that and downsampled by the GPU, so the texture
+            // still resolves text cleanly at the size the panel actually occupies.
+            const STAGE_SCALE = 2;
+            const STAGE_W = SCREEN_CSS_W * STAGE_SCALE;
+            const STAGE_H = SCREEN_CSS_H * STAGE_SCALE;
+            const scriptLoads = Object.create(null);
+            const gltfCache = Object.create(null);
+            let roomLibs = null;
+            let maxAnisotropy = 1;
+
+            function loadScript(src) {
+                if (!scriptLoads[src]) {
+                    scriptLoads[src] = new Promise((resolve, reject) => {
+                        const el = document.createElement("script");
+                        el.src = src;
+                        el.onload = resolve;
+                        el.onerror = () => reject(new Error("Failed to load " + src));
+                        document.head.appendChild(el);
+                    });
+                }
+                return scriptLoads[src];
+            }
+
+            function loadGltf(url) {
+                if (!gltfCache[url]) {
+                    gltfCache[url] = new Promise((resolve, reject) => {
+                        if (typeof THREE === "undefined" || typeof THREE.GLTFLoader === "undefined") {
+                            reject(new Error("GLTFLoader unavailable"));
+                            return;
+                        }
+                        new THREE.GLTFLoader().load(url, resolve, undefined, reject);
+                    });
+                }
+                return gltfCache[url];
+            }
+
+            function prefetchModels() {
+                CHAIR_MODEL_URLS.forEach((url) => {
+                    loadGltf(url).catch(() => {});
+                });
+            }
+
+            function ensureRoomLibs() {
+                if (!roomLibs) {
+                    roomLibs = (async () => {
+                        if (typeof THREE === "undefined") throw new Error("three.js unavailable");
+                        for (const src of ROOM_SCRIPTS) await loadScript(src);
+                        prefetchModels();
+                    })();
+                }
+                return roomLibs;
+            }
+
+            // Phones pay for this on a metered connection and may never open the room, so
+            // only desktops prefetch; mobile loads on demand behind the rotate gate.
+            if (!isTouchDevice()) {
+                const startPrefetch = () => {
+                    ensureRoomLibs().catch(() => {});
+                };
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(startPrefetch, { timeout: 1200 });
+                } else {
+                    window.addEventListener("load", startPrefetch, { once: true });
+                }
+            }
+
+            let room = null;
+
+            function cssColor(name) {
+                return new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(name).trim());
+            }
+
+            // Every surface is derived from the two theme colours, so the room re-skins with
+            // the page instead of carrying its own hardcoded palette. mix = how far the
+            // surface sits from --bg toward --fg; spec/shininess give each material a
+            // distinct response to light so the shapes read as different stuff.
+            // Specular is kept deliberately low across the board. Phong's highlight lobe on
+            // a large flat panel viewed up close (the bezel, seen from the chair) turns
+            // into a broad bright smear rather than a highlight, so these read as matte
+            // surfaces with just enough sheen to separate metal from plastic from paint.
+            const SURFACES = {
+                wall:    { mix: 0.11, shininess: 2,  spec: 0.01 },
+                floor:   { mix: 0.16, shininess: 10, spec: 0.03 },
+                ceiling: { mix: 0.06, shininess: 1,  spec: 0.01 },
+                skirt:   { mix: 0.22, shininess: 8,  spec: 0.03 },
+                trim:    { mix: 0.26, shininess: 12, spec: 0.04 },
+                door:    { mix: 0.19, shininess: 8,  spec: 0.03 },
+                bezel:   { mix: 0.31, shininess: 16, spec: 0.05 },
+                deskTop: { mix: 0.28, shininess: 14, spec: 0.05 },
+                metal:   { mix: 0.45, shininess: 30, spec: 0.12 },
+                keycap:  { mix: 0.24, shininess: 6,  spec: 0.03 },
+                rug:     { mix: 0.13, shininess: 1,  spec: 0.00 },
+                paper:   { mix: 0.56, shininess: 4,  spec: 0.02 }
+            };
+
+            function roomPalette() {
+                const bg = cssColor("--bg");
+                const fg = cssColor("--fg");
+                const out = { bg: bg, accent: cssColor("--cube-color") };
+                for (const key in SURFACES) {
+                    out[key] = bg.clone().lerp(fg, SURFACES[key].mix);
+                }
+                return out;
+            }
+
+            function makeMats(palette) {
+                const mats = {};
+                for (const key in SURFACES) {
+                    mats[key] = new THREE.MeshPhongMaterial({
+                        color: palette[key],
+                        shininess: SURFACES[key].shininess,
+                        specular: new THREE.Color().setScalar(SURFACES[key].spec)
+                    });
+                }
+                return mats;
+            }
+
+            function applyPalette(r) {
+                const p = roomPalette();
+                for (const key in SURFACES) {
+                    if (r.mats[key]) r.mats[key].color.copy(p[key]);
+                }
+                if (r.panelMat) {
+                    r.panelMat.color.copy(p.paper);
+                    r.panelMat.emissive.copy(p.paper);
+                }
+                if (r.screenLight) r.screenLight.color.copy(p.accent);
+                r.scene.background = p.bg;
+                r.renderer.setClearColor(p.bg, 1);
+            }
+
+            function createRoom() {
+                if (typeof THREE === "undefined") {
+                    throw new Error("three.js unavailable");
+                }
+
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 80);
+                const palette = roomPalette();
+                scene.background = palette.bg;
+
+                // Phones render this at a fraction of a desktop's budget: MSAA and a 2k
+                // shadow map are the two things worth giving up first.
+                const lowPower = isTouchDevice();
+                const renderer = new THREE.WebGLRenderer({
+                    canvas: glCanvas,
+                    antialias: !lowPower,
+                    alpha: false,
+                    powerPreference: "high-performance"
+                });
+                renderer.setClearColor(palette.bg, 1);
+                renderer.autoClear = true;
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+                glCanvas.style.position = "absolute";
+                glCanvas.style.inset = "0";
+                glCanvas.style.pointerEvents = "none";
+
+                const mats = makeMats(palette);
+                const panelMat = new THREE.MeshPhongMaterial({
+                    color: palette.paper,
+                    emissive: palette.paper,
+                    emissiveIntensity: 0.85,
+                    shininess: 4
+                });
+
+                const HALF = 5;
+                const HEIGHT = 3.2;
+                const WALL = 0.16;
+
+                function box(w, h, d, mat, x, y, z, parent) {
+                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                    mesh.position.set(x, y, z);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    (parent || scene).add(mesh);
+                    return mesh;
+                }
+
+                // The shell receives light but must not cast: it encloses the camera, so
+                // casting would drop the whole room into its own shadow.
+                [
+                    box(HALF * 2 + WALL, WALL, HALF * 2 + WALL, mats.floor, 0, -WALL / 2, 0),
+                    box(HALF * 2 + WALL, WALL, HALF * 2 + WALL, mats.ceiling, 0, HEIGHT + WALL / 2, 0),
+                    box(HALF * 2 + WALL, HEIGHT, WALL, mats.wall, 0, HEIGHT / 2, -HALF),
+                    box(HALF * 2 + WALL, HEIGHT, WALL, mats.wall, 0, HEIGHT / 2, HALF),
+                    box(WALL, HEIGHT, HALF * 2, mats.wall, -HALF, HEIGHT / 2, 0),
+                    box(WALL, HEIGHT, HALF * 2, mats.wall, HALF, HEIGHT / 2, 0)
+                ].forEach((mesh) => { mesh.castShadow = false; });
+
+                const SKIRT_H = 0.13;
+                const SKIRT_D = 0.028;
+                const inner = HALF - WALL / 2;
+                box(HALF * 2, SKIRT_H, SKIRT_D, mats.skirt, 0, SKIRT_H / 2, -inner + SKIRT_D / 2);
+                box(HALF * 2, SKIRT_H, SKIRT_D, mats.skirt, 0, SKIRT_H / 2, inner - SKIRT_D / 2);
+                box(SKIRT_D, SKIRT_H, HALF * 2, mats.skirt, -inner + SKIRT_D / 2, SKIRT_H / 2, 0);
+                box(SKIRT_D, SKIRT_H, HALF * 2, mats.skirt, inner - SKIRT_D / 2, SKIRT_H / 2, 0);
+
+                const ceilingPanel = box(1.7, 0.05, 0.52, panelMat, 0, HEIGHT - 0.025, 0.3);
+                ceilingPanel.castShadow = false;
+                box(1.82, 0.04, 0.62, mats.trim, 0, HEIGHT - 0.015, 0.3).castShadow = false;
+
+                const doorW = 1.05;
+                const doorH = 2.15;
+                const doorZ = HALF - WALL / 2;
+                box(doorW + 0.20, 0.10, 0.07, mats.trim, 0, doorH + 0.05, doorZ - 0.035);
+                box(0.10, doorH + 0.10, 0.07, mats.trim, -(doorW / 2 + 0.05), (doorH + 0.10) / 2, doorZ - 0.035);
+                box(0.10, doorH + 0.10, 0.07, mats.trim, doorW / 2 + 0.05, (doorH + 0.10) / 2, doorZ - 0.035);
+                box(doorW, doorH, 0.05, mats.door, 0, doorH / 2, doorZ - 0.06);
+                box(doorW - 0.28, doorH * 0.40, 0.014, mats.trim, 0, doorH * 0.29, doorZ - 0.092);
+                box(doorW - 0.28, doorH * 0.28, 0.014, mats.trim, 0, doorH * 0.71, doorZ - 0.092);
+                const knob = new THREE.Mesh(new THREE.SphereGeometry(0.042, 18, 14), mats.metal);
+                knob.position.set(doorW / 2 - 0.14, 1.02, doorZ - 0.10);
+                knob.castShadow = true;
+                scene.add(knob);
+
+                const plastic = new THREE.MeshPhongMaterial({ color: 0xf1efe6, shininess: 14 });
+
+                function meshBox(w, h, d, mat, x, y, z, parent, rotX) {
+                    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                    mesh.position.set(x, y, z);
+                    if (rotX) mesh.rotation.x = rotX;
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    (parent || scene).add(mesh);
+                    return mesh;
+                }
+
+                const deskY = 0.74;
+                const deskZ = -HALF + 0.66;
+                const deskW = 1.88;
+                const deskD = 0.80;
+                const topT = 0.042;
+                const deskTop = deskY + topT / 2;
+                box(deskW, topT, deskD, mats.deskTop, 0, deskY, deskZ);
+                box(deskW - 0.06, 0.016, deskD - 0.06, mats.trim, 0, deskY - topT / 2 - 0.008, deskZ).castShadow = false;
+                const legX = deskW / 2 - 0.08;
+                const legZBack = deskZ - deskD / 2 + 0.08;
+                const legZFront = deskZ + deskD / 2 - 0.08;
+                [[-legX, legZBack], [legX, legZBack], [-legX, legZFront], [legX, legZFront]].forEach(([lx, lz]) => {
+                    box(0.045, deskY - topT / 2, 0.045, mats.metal, lx, (deskY - topT / 2) / 2, lz);
+                });
+                box(deskW - 0.16, 0.028, 0.028, mats.metal, 0, 0.09, legZBack);
+                box(deskW - 0.16, 0.028, 0.028, mats.metal, 0, 0.09, legZFront);
+                box(deskW - 0.30, 0.32, 0.024, mats.deskTop, 0, deskY - 0.28, deskZ - deskD / 2 + 0.07);
+
+                // Monitor. screenW/screenH/screenY/frontZ define the CSS3D plane, so they
+                // stay put -- only the hardware around them changed.
+                const screenW = 0.80;
+                const screenH = 0.45;
+                const bezel = 0.016;
+                const screenY = deskY + 0.44;
+                const frontZ = deskZ - 0.07;
+                const outerW = screenW + bezel * 2;
+                const outerH = screenH + bezel * 2;
+                const neckH = screenY - outerH / 2 - deskTop - 0.06;
+                const monitorProxy = [
+                    box(outerW, outerH, 0.016, mats.bezel, 0, screenY, frontZ - 0.008),
+                    box(outerW * 0.90, outerH * 0.82, 0.042, mats.bezel, 0, screenY, frontZ - 0.037),
+                    box(0.20, 0.10, 0.030, mats.bezel, 0, screenY - outerH * 0.30, frontZ - 0.060),
+                    box(0.075, Math.max(neckH, 0.08), 0.042, mats.metal, 0, deskTop + 0.03 + Math.max(neckH, 0.08) / 2, frontZ - 0.055)
+                ];
+                const monitorFoot = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.185, 0.020, 30), mats.metal);
+                monitorFoot.position.set(0, deskTop + 0.010, frontZ - 0.055);
+                monitorFoot.castShadow = true;
+                monitorFoot.receiveShadow = true;
+                scene.add(monitorFoot);
+                monitorProxy.push(monitorFoot);
+
+                // Desk props: they sell the scale of the room more than the room does.
+
+                // Keyboard: a real 60% layout with individual keycaps. Unit widths per row
+                // each sum to 15u, which is what gives the staggered edges a keyboard reads
+                // by. All 61 caps live in one InstancedMesh, so they cost a single draw call.
+                const KB_W = 0.40;
+                const KB_D = 0.142;
+                const KB_PAD = 0.009;
+                const KB_UNITS = 15;
+                const KB_ROWS = [
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+                    [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5],
+                    [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25],
+                    [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75],
+                    [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25]
+                ];
+
+                const kbGroup = new THREE.Group();
+                kbGroup.position.set(0, deskTop, deskZ + 0.215);
+                kbGroup.rotation.x = -0.05;
+                scene.add(kbGroup);
+                box(KB_W, 0.012, KB_D, mats.keycap, 0, 0.006, 0, kbGroup);
+                box(KB_W - 0.013, 0.005, KB_D - 0.013, mats.bezel, 0, 0.0135, 0, kbGroup)
+                    .castShadow = false;
+
+                const kbUnit = (KB_W - KB_PAD * 2) / KB_UNITS;
+                const kbRowD = (KB_D - KB_PAD * 2) / KB_ROWS.length;
+                const capCount = KB_ROWS.reduce((total, row) => total + row.length, 0);
+                const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), mats.bezel, capCount);
+                caps.castShadow = true;
+                caps.receiveShadow = true;
+                const capMatrix = new THREE.Matrix4();
+                const capPos = new THREE.Vector3();
+                const capScale = new THREE.Vector3();
+                const capQuat = new THREE.Quaternion();
+                let capIndex = 0;
+                KB_ROWS.forEach((row, rowIndex) => {
+                    let x = -KB_W / 2 + KB_PAD;
+                    const z = -KB_D / 2 + KB_PAD + kbRowD * (rowIndex + 0.5);
+                    row.forEach((widthInUnits) => {
+                        const capW = kbUnit * widthInUnits;
+                        capPos.set(x + capW / 2, 0.0185, z);
+                        capScale.set(capW - kbUnit * 0.13, 0.008, kbRowD * 0.78);
+                        capMatrix.compose(capPos, capQuat, capScale);
+                        caps.setMatrixAt(capIndex, capMatrix);
+                        capIndex += 1;
+                        x += capW;
+                    });
+                });
+                caps.instanceMatrix.needsUpdate = true;
+                kbGroup.add(caps);
+
+                // Mug: a lathed profile, so it is genuinely hollow -- outer wall, rim, inner
+                // wall, inner floor -- instead of a capped cylinder. The inner surface is
+                // only visible because the profile doubles back, hence DoubleSide.
+                mats.paper.side = THREE.DoubleSide;
+                const MUG_PROFILE = [
+                    [0.000, 0.000], [0.036, 0.000], [0.038, 0.004], [0.040, 0.030],
+                    [0.041, 0.072], [0.041, 0.087], [0.037, 0.088], [0.036, 0.070],
+                    [0.035, 0.013], [0.000, 0.012]
+                ].map((p) => new THREE.Vector2(p[0], p[1]));
+
+                const mugGroup = new THREE.Group();
+                mugGroup.position.set(-0.62, deskTop, deskZ + 0.13);
+                mugGroup.rotation.y = -0.55;
+                scene.add(mugGroup);
+                const mug = new THREE.Mesh(new THREE.LatheGeometry(MUG_PROFILE, 40), mats.paper);
+                mug.castShadow = true;
+                mug.receiveShadow = true;
+                mugGroup.add(mug);
+
+                // Open arc rather than a closed ring, rotated so its two ends meet the wall.
+                const mugHandle = new THREE.Mesh(
+                    new THREE.TorusGeometry(0.023, 0.0055, 10, 30, Math.PI * 1.35),
+                    mats.paper
+                );
+                mugHandle.position.set(0.052, 0.050, 0);
+                mugHandle.rotation.z = -2.12;
+                mugHandle.castShadow = true;
+                mugGroup.add(mugHandle);
+
+                const coffee = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.0345, 32),
+                    new THREE.MeshPhongMaterial({
+                        color: 0x2b1c12,
+                        shininess: 65,
+                        specular: new THREE.Color().setScalar(0.16)
+                    })
+                );
+                coffee.rotation.x = -Math.PI / 2;
+                coffee.position.y = 0.071;
+                mugGroup.add(coffee);
+
+                const rug = box(2.6, 0.010, 1.9, mats.rug, 0, 0.005, deskZ + 1.25);
+                rug.castShadow = false;
+
+                const screenGlass = new THREE.Mesh(
+                    new THREE.PlaneGeometry(1, 1),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x0a0a0a,
+                        depthWrite: true,
+                        depthTest: true
+                    })
+                );
+                screenGlass.renderOrder = 10;
+                screenGlass.position.set(0, screenY, frontZ + 0.002);
+                screenGlass.scale.set(screenW, screenH, 1);
+                scene.add(screenGlass);
+                const screenZ = frontZ + 0.002;
+
+                const chairZ = deskZ + 0.72;
+                const chairX = 0;
+                const chairRotY = Math.PI;
+                const chairGroup = new THREE.Group();
+                chairGroup.position.set(chairX, 0, chairZ);
+                scene.add(chairGroup);
+                const chairProxy = [
+                    meshBox(0.44, 0.04, 0.42, plastic, 0, 0.44, 0, chairGroup),
+                    meshBox(0.4, 0.42, 0.035, plastic, 0, 0.67, 0.18, chairGroup, -0.14),
+                    meshBox(0.34, 0.025, 0.03, plastic, 0, 0.78, 0.2, chairGroup, -0.14),
+                    meshBox(0.34, 0.025, 0.03, plastic, 0, 0.64, 0.175, chairGroup, -0.14),
+                    meshBox(0.16, 0.03, 0.03, plastic, 0, 0.9, 0.205, chairGroup, -0.14),
+                    meshBox(0.04, 0.46, 0.04, plastic, -0.16, 0.23, 0.16, chairGroup, 0.12),
+                    meshBox(0.04, 0.46, 0.04, plastic, 0.16, 0.23, 0.16, chairGroup, 0.12),
+                    meshBox(0.04, 0.46, 0.04, plastic, -0.16, 0.23, -0.15, chairGroup, -0.1),
+                    meshBox(0.04, 0.46, 0.04, plastic, 0.16, 0.23, -0.15, chairGroup, -0.1)
+                ];
+
+                scene.add(new THREE.AmbientLight(0xffffff, 0.34));
+                scene.add(new THREE.HemisphereLight(0xffffff, 0x1a1a1a, 0.46));
+
+                const sun = new THREE.DirectionalLight(0xffffff, 0.52);
+                sun.position.set(2.0, 3.6, 2.4);
+                sun.target.position.set(0, 0.7, deskZ);
+                sun.castShadow = true;
+                // Everything worth shadowing lives around the desk, so the shadow camera is
+                // cropped to that instead of the whole 10m room. Combined with the larger
+                // map this is roughly 8x the texel density on the furniture, which is what
+                // turns the blocky blob under the monitor into an actual soft shadow.
+                sun.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
+                sun.shadow.camera.near = 0.5;
+                sun.shadow.camera.far = 14;
+                sun.shadow.camera.left = -2.6;
+                sun.shadow.camera.right = 2.6;
+                sun.shadow.camera.top = 3.0;
+                sun.shadow.camera.bottom = -1.2;
+                sun.shadow.bias = -0.0006;
+                sun.shadow.normalBias = 0.022;
+                sun.shadow.radius = 2.5;
+                scene.add(sun);
+                scene.add(sun.target);
+
+                const ceilingLight = new THREE.PointLight(0xffffff, 0.34, 11, 2);
+                ceilingLight.position.set(0, HEIGHT - 0.30, 0.3);
+                scene.add(ceilingLight);
+
+                // Spill from the monitor, tinted with the theme accent. Kept deliberately
+                // weak and short-range -- it is a hint of glow, not a coloured floodlight.
+                const screenLight = new THREE.PointLight(palette.accent, 0.12, 1.2, 2);
+                screenLight.position.set(0, screenY, frontZ + 0.26);
+                scene.add(screenLight);
+
+                overlay.classList.add("monitor-html");
+
+                if (typeof THREE.CSS3DRenderer === "undefined") {
+                    throw new Error("CSS3DRenderer unavailable");
+                }
+                const cssRenderer = new THREE.CSS3DRenderer();
+                cssRenderer.domElement.id = "room-css";
+                cssRenderer.domElement.style.position = "absolute";
+                cssRenderer.domElement.style.inset = "0";
+                cssRenderer.domElement.style.pointerEvents = "none";
+                const hudEl = document.getElementById("room-hud");
+                layer.insertBefore(cssRenderer.domElement, hudEl);
+                const cssScene = new THREE.Scene();
+                const cssObject = new THREE.CSS3DObject(overlay);
+                cssScene.add(cssObject);
+
+                function resize() {
+                    const w = layer.clientWidth || window.innerWidth;
+                    const h = layer.clientHeight || window.innerHeight;
+                    camera.aspect = w / Math.max(h, 1);
+                    camera.updateProjectionMatrix();
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPower ? 1 : 1.5));
+                    renderer.setSize(w, h, false);
+                    cssRenderer.setSize(w, h);
+                }
+
+                const roomState = {
+                    scene,
+                    camera,
+                    renderer,
+                    cssRenderer,
+                    cssScene,
+                    cssObject,
+                    mount: overlay,
+                    appHome: null,
+                    htmlSurface: HTML_CANVAS_SUPPORTED ? createHtmlSurface(STAGE_W, STAGE_H) : null,
+                    screenMode: "dom",
+                    mats,
+                    panelMat,
+                    screenLight,
+                    screenGlass,
+                    screenMesh: null,
+                    monitorProxy,
+                    chairGroup,
+                    chairProxy,
+                    deskY,
+                    deskZ,
+                    chairX,
+                    chairZ,
+                    chairRotY,
+                    screen: { x: 0, y: screenY, z: screenZ, w: screenW, h: screenH },
+                    obstacles: [
+                        { minX: -deskW / 2 - 0.02, maxX: deskW / 2 + 0.02, minZ: deskZ - deskD / 2, maxZ: deskZ + deskD / 2 },
+                        { minX: chairX - 0.16, maxX: chairX + 0.16, minZ: chairZ - 0.18, maxZ: chairZ + 0.20 }
+                    ],
+                    HALF,
+                    resize
+                };
+                roomState.propsReady = Promise.all([
+                    loadPropModel(roomState, CHAIR_MODEL_URLS, installChairModel)
+                ]);
+                return roomState;
+            }
+
+            // Captures .app into a texture. The staging <canvas layoutsubtree> hosts the
+            // element and drawElementImage paints it; three's CanvasTexture upload stalls
+            // when handed a layoutsubtree canvas directly (it never sees the repaint as a
+            // content change), so pixels are copied into a plain mirror canvas first and
+            // that is what the texture reads.
+            function createHtmlSurface(width, height) {
+                const holder = document.createElement("div");
+                holder.className = "hic-stage";
+                const stage = document.createElement("canvas");
+                stage.setAttribute("layoutsubtree", "");
+                stage.width = width;
+                stage.height = height;
+                holder.appendChild(stage);
+                document.body.appendChild(holder);
+
+                const stageCtx = stage.getContext("2d");
+                const mirror = document.createElement("canvas");
+                mirror.width = width;
+                mirror.height = height;
+                const mirrorCtx = mirror.getContext("2d");
+
+                const texture = new THREE.CanvasTexture(mirror);
+                // The panel is far smaller on screen than the capture, so this is always a
+                // minification: mipmaps plus anisotropy are what keep the text from
+                // shimmering into mush at a glancing angle.
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.generateMipmaps = true;
+                texture.anisotropy = maxAnisotropy;
+
+                let dirty = false;
+                stage.onpaint = function () {
+                    const app = stage.querySelector(".app");
+                    if (!app) return;
+                    // drawElementImage preserves alpha, and the screen material samples RGB
+                    // only -- so a translucent white like --term-shadow would land as solid
+                    // white. Compositing over the theme background first is what the page
+                    // itself does, and keeps the capture faithful.
+                    stageCtx.setTransform(1, 0, 0, 1, 0, 0);
+                    stageCtx.clearRect(0, 0, stage.width, stage.height);
+                    stageCtx.fillStyle = getComputedStyle(document.documentElement)
+                        .getPropertyValue("--bg").trim() || "#000";
+                    stageCtx.fillRect(0, 0, stage.width, stage.height);
+                    // The element lays out at logical size; draw it supersampled.
+                    stageCtx.setTransform(STAGE_SCALE, 0, 0, STAGE_SCALE, 0, 0);
+                    stageCtx.drawElementImage(app, 0, 0);
+                    dirty = true;
+                    // onpaint lands a frame or more after requestPaint, so the render loop
+                    // has to be woken again or a static scene would keep the stale texture.
+                    markRender();
+                };
+
+                return {
+                    texture: texture,
+                    holds(app) {
+                        return !!app && stage.contains(app);
+                    },
+                    adopt(app) {
+                        if (app && !stage.contains(app)) stage.appendChild(app);
+                        this.repaint();
+                    },
+                    repaint() {
+                        if (typeof stage.requestPaint === "function") stage.requestPaint();
+                    },
+                    sync() {
+                        if (!dirty) return;
+                        dirty = false;
+                        mirrorCtx.clearRect(0, 0, mirror.width, mirror.height);
+                        mirrorCtx.drawImage(stage, 0, 0);
+                        texture.needsUpdate = true;
+                    },
+                    dispose() {
+                        stage.onpaint = null;
+                        texture.dispose();
+                        holder.remove();
+                    }
+                };
+            }
+
+            function loadPropModel(roomState, urls, install) {
+                return (async () => {
+                    for (const url of urls) {
+                        try {
+                            const gltf = await loadGltf(url);
+                            install(roomState, gltf.scene);
+                            return;
+                        } catch (error) {
+                            /* missing files are expected until a model is added */
+                        }
+                    }
+                })();
+            }
+
+            function meshMaterials(node) {
+                return node.material ? [].concat(node.material) : [];
+            }
+
+            function flattenToLambert(root) {
+                root.traverse((node) => {
+                    if (!node.isMesh) return;
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    // MeshLambertMaterial has no flatShading in three r128 -- asking for it
+                    // only logs a warning. MeshPhongMaterial with shininess 0 matches the
+                    // Lambert look and does support it.
+                    const next = meshMaterials(node).map((mat) => new THREE.MeshPhongMaterial({
+                        color: mat.color ? mat.color.clone() : new THREE.Color(0xffffff),
+                        shininess: 0,
+                        flatShading: true
+                    }));
+                    node.material = next.length === 1 ? next[0] : next;
+                });
+            }
+
+            function clearProxy(meshes, extra) {
+                meshes.forEach((mesh) => {
+                    if (mesh.parent) mesh.parent.remove(mesh);
+                });
+                meshes.length = 0;
+                if (extra && extra.parent) extra.parent.remove(extra);
+            }
+
+            function standUpright(model) {
+                model.updateMatrixWorld(true);
+                const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+                if (size.z >= size.y && size.z >= size.x) model.rotation.x = -Math.PI / 2;
+                else if (size.x >= size.y && size.x >= size.z) model.rotation.z = Math.PI / 2;
+            }
+
+            function installChairModel(roomState, model) {
+                flattenToLambert(model);
+                roomState.scene.add(model);
+                model.rotation.set(0, 0, 0);
+                standUpright(model);
+                model.rotateY(roomState.chairRotY);
+                model.updateMatrixWorld(true);
+                const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+                model.scale.multiplyScalar(0.92 / Math.max(size.y, 0.001));
+                model.updateMatrixWorld(true);
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.x += roomState.chairX - center.x;
+                model.position.y += -box.min.y;
+                model.position.z += roomState.chairZ - center.z;
+                const placed = new THREE.Box3().setFromObject(model);
+                roomState.obstacles[1] = {
+                    minX: placed.min.x + 0.05,
+                    maxX: placed.max.x - 0.05,
+                    minZ: placed.min.z + 0.05,
+                    maxZ: placed.max.z - 0.05
+                };
+                clearProxy(roomState.chairProxy, roomState.chairGroup);
+            }
+
+            const keys = Object.create(null);
+
+            // A keyup that lands while the window is blurred (alt-tab, Esc out of the
+            // room) never reaches us, which would leave the key stuck down.
+            function releaseKeys() {
+                for (const code in keys) keys[code] = false;
+            }
+
+            const player = {
+                x: 0,
+                y: 0,
+                z: 3.6,
+                vx: 0,
+                vy: 0,
+                vz: 0,
+                yaw: 0,
+                pitch: 0,
+                onGround: true,
+                locked: false,
+                playing: false,
+                animating: false,
+                sitting: false,
+                jumpLatched: false,
+                standX: null,
+                standZ: null
+            };
+
+            // Touch state, mirrored into the same movement code the keyboard feeds.
+            const touch = {
+                enabled: false,
+                lookMode: true,
+                jump: false,
+                stick: { active: false, sprint: false, x: 0, y: 0, id: -1, baseX: 0, baseY: 0 },
+                look: { id: -1, lastX: 0, lastY: 0 }
+            };
+
+            const EYE = 1.58;
+            const SIT_EYE = 1.18;
+            const FOV_STAND = 52;
+            const FOV_SIT = 46;
+            const FOV_FILL = 70;
+            const RADIUS = 0.24;
+
+            // Half-Life 2 movement. Source measures in units where 1u = 3/4 inch, so every
+            // cvar below is the stock HL2 value converted into the metres this room is
+            // modelled in -- keeping the ratio of speed to room size identical is what
+            // preserves the feel, not the raw numbers.
+            const HU = 0.01905;                       // one Source unit, in metres
+            const SPEED_WALK = 190 * HU;              // 3.62 m/s, hl2 ground speed
+            const SPEED_SPRINT = 320 * HU;            // 6.10 m/s, sv_maxspeed with +speed
+            const SV_ACCELERATE = 10;
+            const SV_AIRACCELERATE = 10;
+            const SV_FRICTION = 4;
+            const SV_STOPSPEED = 100 * HU;            // 1.905 m/s
+            const SV_GRAVITY = 600 * HU;              // 11.43 m/s^2
+            const JUMP_IMPULSE = 268.3281573 * HU;    // sqrt(2 * 600 * 60) -> 5.11 m/s
+            const AIR_SPEED_CAP = 30 * HU;            // what makes air-strafing possible
+
+            // Source look: m_yaw/m_pitch are 0.022 deg per mouse count, scaled by
+            // `sensitivity` (3 is the HL2 default).
+            const LOOK_SENSITIVITY = 3;
+            const LOOK_SCALE = LOOK_SENSITIVITY * 0.022 * Math.PI / 180;
+            const PITCH_LIMIT = 89 * Math.PI / 180;
+            const TOUCH_LOOK_SCALE = 0.0038;          // rad per css px, tuned for thumbs
+
+            // Scratch vectors: these run on every frame, so they are reused rather than
+            // reallocated.
+            const tmpChair = new THREE.Vector3();
+            const tmpToChair = new THREE.Vector3();
+            const tmpForward = new THREE.Vector3();
+            const tmpToCam = new THREE.Vector3();
+            const tmpNormal = new THREE.Vector3();
+            const lensCenter = new THREE.Vector3();
+
+            // CGameMovement::Friction. The sv_stopspeed floor is the part that matters:
+            // below it you shed speed at a constant rate instead of exponentially, which is
+            // why Half-Life 2 stops crisply rather than gliding to a halt.
+            function applyFriction(dt) {
+                const speed = Math.hypot(player.vx, player.vz);
+                if (speed < 0.008) {
+                    player.vx = 0;
+                    player.vz = 0;
+                    return;
+                }
+                const control = speed < SV_STOPSPEED ? SV_STOPSPEED : speed;
+                const scale = Math.max(0, speed - control * SV_FRICTION * dt) / speed;
+                player.vx *= scale;
+                player.vz *= scale;
+            }
+
+            // CGameMovement::Accelerate. Acceleration is projected onto the wish direction
+            // and clamped so it never pushes past wishspeed *along that axis* -- speed
+            // already carried perpendicular to it is left alone, which is the whole basis
+            // of Source's air game.
+            function accelerate(wishX, wishZ, wishSpeed, accel, dt) {
+                const current = player.vx * wishX + player.vz * wishZ;
+                const add = wishSpeed - current;
+                if (add <= 0) return;
+                const step = Math.min(accel * wishSpeed * dt, add);
+                player.vx += step * wishX;
+                player.vz += step * wishZ;
+            }
+
+            // CGameMovement::AirAccelerate: identical, except wishspeed is clipped to a very
+            // small value first, so steering mid-jump is weak but never zero.
+            function airAccelerate(wishX, wishZ, wishSpeed, dt) {
+                const clipped = Math.min(wishSpeed, AIR_SPEED_CAP);
+                const current = player.vx * wishX + player.vz * wishZ;
+                const add = clipped - current;
+                if (add <= 0) return;
+                const step = Math.min(SV_AIRACCELERATE * wishSpeed * dt, add);
+                player.vx += step * wishX;
+                player.vz += step * wishZ;
+            }
+
+            // View bob and the landing dip. Source drives these off speed; they are a large
+            // part of why walking in HL2 feels weighted rather than like a floating camera.
+            const view = { bobTime: 0, bobY: 0, bobX: 0, roll: 0, dip: 0, impact: 0 };
+
+            function updateViewBob(dt) {
+                const speed = Math.hypot(player.vx, player.vz);
+                if (player.onGround && speed > 0.25) {
+                    const amp = Math.min(speed / SPEED_SPRINT, 1);
+                    view.bobTime += dt * (3.6 + speed * 1.15);
+                    view.bobY = Math.sin(view.bobTime * 2) * 0.021 * amp;
+                    view.bobX = Math.sin(view.bobTime) * 0.014 * amp;
+                    view.roll = Math.sin(view.bobTime) * 0.006 * amp;
+                } else {
+                    const settle = Math.min(1, dt * 9);
+                    view.bobY -= view.bobY * settle;
+                    view.bobX -= view.bobX * settle;
+                    view.roll -= view.roll * settle;
+                }
+                if (view.impact > 0) {
+                    view.dip = Math.min(view.dip + view.impact * 0.10, 0.085);
+                    view.impact = 0;
+                }
+                view.dip -= view.dip * Math.min(1, dt * 7.5);
+            }
+
+            function collide(nx, nz) {
+                const inner = room.HALF - 0.18 - RADIUS;
+                nx = Math.max(-inner, Math.min(inner, nx));
+                nz = Math.max(-inner, Math.min(inner, nz));
+                room.obstacles.forEach((box) => {
+                    if (nx > box.minX - RADIUS && nx < box.maxX + RADIUS && nz > box.minZ - RADIUS && nz < box.maxZ + RADIUS) {
+                        const cx = (box.minX + box.maxX) / 2;
+                        const cz = (box.minZ + box.maxZ) / 2;
+                        if (Math.abs(nx - cx) / Math.max(box.maxX - box.minX, 0.01) > Math.abs(nz - cz) / Math.max(box.maxZ - box.minZ, 0.01)) {
+                            nx = nx < cx ? box.minX - RADIUS : box.maxX + RADIUS;
+                        } else {
+                            nz = nz < cz ? box.minZ - RADIUS : box.maxZ + RADIUS;
+                        }
+                    }
+                });
+                return { x: nx, z: nz };
+            }
+
+            function eyeHeight() {
+                return player.sitting ? SIT_EYE : EYE;
+            }
+
+            function setCameraFromPlayer() {
+                // Lateral bob rides the camera's right vector so it reads as the body
+                // swaying under the head rather than the world sliding sideways.
+                const rx = Math.cos(player.yaw);
+                const rz = -Math.sin(player.yaw);
+                room.camera.position.set(
+                    player.x + rx * view.bobX,
+                    player.y + eyeHeight() + view.bobY - view.dip,
+                    player.z + rz * view.bobX
+                );
+                applyYawPitch();
+                if (view.roll) room.camera.rotateZ(view.roll);
+            }
+
+            function applyYawPitch() {
+                room.camera.rotation.set(0, 0, 0);
+                room.camera.rotateY(player.yaw);
+                room.camera.rotateX(player.pitch);
+            }
+
+            function lerpAngle(a, b, t) {
+                let d = b - a;
+                while (d > Math.PI) d -= Math.PI * 2;
+                while (d < -Math.PI) d += Math.PI * 2;
+                return a + d * t;
+            }
+
+            function sitCameraPos() {
+                return new THREE.Vector3(room.screen.x, SIT_EYE, room.screen.z + 0.82);
+            }
+
+            function lookingAtChair() {
+                if (!room || !player.playing || player.animating || player.sitting) return false;
+                const cam = room.camera.position;
+                const target = tmpChair.set(room.chairX, 0.46, room.chairZ);
+                const toChair = tmpToChair.copy(target).sub(cam);
+                const dist = toChair.length();
+                if (dist < 0.35 || dist > 2.15) return false;
+                toChair.divideScalar(dist);
+                room.camera.getWorldDirection(tmpForward);
+                return tmpForward.dot(toChair) > 0.42;
+            }
+
+            function introStandPos() {
+                return new THREE.Vector3(room.screen.x, EYE, room.chairZ + 0.62);
+            }
+
+            function lookAtScreenFrom(pos) {
+                const target = new THREE.Vector3(room.screen.x, room.screen.y, room.screen.z);
+                room.camera.position.copy(pos);
+                room.camera.lookAt(target);
+                player.yaw = Math.atan2(-(target.x - pos.x), -(target.z - pos.z));
+                const dx = target.x - pos.x;
+                const dy = target.y - pos.y;
+                const dz = target.z - pos.z;
+                player.pitch = Math.atan2(dy, Math.sqrt(dx * dx + dz * dz));
+            }
+
+            function frustumAt(distance) {
+                const vFov = (room.camera.fov * Math.PI) / 180;
+                const h = 2 * distance * Math.tan(vFov / 2);
+                return { w: h * room.camera.aspect, h: h };
+            }
+
+            function fillDistance() {
+                const vFov = (room.camera.fov * Math.PI) / 180;
+                const halfTan = Math.tan(vFov / 2);
+                const distH = room.screen.h / 2 / halfTan;
+                const distW = room.screen.w / 2 / (halfTan * room.camera.aspect);
+                return Math.min(distH, distW) * 0.995;
+            }
+
+            function layoutMonitorHtml(worldW, worldH) {
+                const aspect = worldW / Math.max(worldH, 0.0001);
+                // Laying the page out at the viewport width (~1600) meant the monitor --
+                // only a few hundred pixels tall on screen -- had to shrink it more than 3x,
+                // leaving the text unreadable from standing distance. A narrower logical
+                // width renders the same content proportionally larger on the panel. It has
+                // to stay above the 860px breakpoint or the page flips to its mobile layout.
+                const vw = SCREEN_CSS_W;
+                const vh = Math.max(Math.round(vw / aspect), 1);
+                room.htmlW = vw;
+                room.htmlH = vh;
+                overlay.style.width = vw + "px";
+                overlay.style.height = vh + "px";
+                const app = overlay.querySelector(".app");
+                if (app) {
+                    app.style.width = vw + "px";
+                    app.style.height = vh + "px";
+                    app.style.maxHeight = vh + "px";
+                }
+            }
+
+            const cssPos = new THREE.Vector3();
+            const cssQuat = new THREE.Quaternion();
+            const cssScale = new THREE.Vector3();
+            const animPos = new THREE.Vector3();
+            let needsRender = true;
+            let lastHint = "";
+
+            function markRender() {
+                needsRender = true;
+            }
+
+            function syncMonitorPage() {
+                if (!room || !room.cssObject || !room.htmlW) return;
+                room.screenGlass.updateMatrixWorld(true);
+                room.screenGlass.matrixWorld.decompose(cssPos, cssQuat, cssScale);
+                room.cssObject.position.copy(cssPos);
+                room.cssObject.quaternion.copy(cssQuat);
+                // Track the mesh's own scale rather than the nominal screen width, so
+                // anything that resizes the screen mesh carries the projected page with it.
+                const s = cssScale.x / room.htmlW;
+                room.cssObject.scale.set(s, s, s);
+            }
+
+            // The page on the monitor is the real .app element, projected by CSS3DRenderer.
+            // Browsers hit-test 3D-transformed DOM correctly, so the only thing standing
+            // between the viewer and a live page is pointer-events on the CSS3D container.
+            // Enable it whenever the pointer is free; disable it during mouse-look so the
+            // room takes the clicks instead.
+            function setScreenInteractive(on) {
+                if (!room || !room.cssRenderer) return;
+                room.cssRenderer.domElement.style.pointerEvents = on ? "auto" : "none";
+            }
+
+            // "dom"    -- the live page projected by CSS3D: real clicks, hover, scrolling,
+            //             but it is a DOM overlay, so the room cannot occlude it.
+            // "canvas" -- the page captured into a texture on the screen mesh: properly
+            //             depth-tested inside the scene, but input cannot reach a texture,
+            //             so this pose is look-only. Falls back to "dom" when the
+            //             HTML-in-Canvas API is absent, which is the common case.
+            function setScreenMode(mode) {
+                if (!room) return;
+                const surface = room.htmlSurface;
+                if (!surface) mode = "dom";
+                if (room.screenMode === mode) return;
+                room.screenMode = mode;
+                const app = document.querySelector(".app");
+                const material = room.screenGlass.material;
+                if (mode === "canvas") {
+                    surface.adopt(app);
+                    if (app) {
+                        app.style.width = SCREEN_CSS_W + "px";
+                        app.style.height = SCREEN_CSS_H + "px";
+                        app.style.maxHeight = SCREEN_CSS_H + "px";
+                    }
+                    material.map = surface.texture;
+                    material.color.setHex(0xffffff);
+                    overlay.style.display = "none";
+                } else {
+                    if (app && app.parentNode !== overlay) overlay.appendChild(app);
+                    material.map = null;
+                    material.color.setHex(0x0a0a0a);
+                    overlay.style.display = "";
+                    layoutMonitorHtml(room.screen.w, room.screen.h);
+                }
+                material.needsUpdate = true;
+                markRender();
+            }
+
+            function syncScreenInteractive() {
+                const usable = player.playing && !player.animating && !inLookMode();
+                // Swap to the captured texture only for mouse-look, where occlusion is the
+                // whole point and nobody is trying to click. Every other pose -- the intro,
+                // sitting down, standing up, reading the page -- keeps the live DOM, so the
+                // page is never swapped mid-animation.
+                setScreenMode(inLookMode() ? "canvas" : "dom");
+                setScreenInteractive(usable);
+            }
+
+            function eventHitsScreen(event) {
+                return !!(event.target && event.target.closest("#monitor-overlay, .app"));
+            }
+
+            function renderRoom() {
+                const domMode = room.screenMode !== "canvas";
+                if (domMode) {
+                    updateScreenFacing();
+                    syncMonitorPage();
+                } else if (room.htmlSurface) {
+                    room.htmlSurface.repaint();
+                    room.htmlSurface.sync();
+                }
+                room.camera.updateMatrixWorld();
+                if (blackHole) {
+                    // Render the room off-screen, then bend it through the lens shader.
+                    room.renderer.setRenderTarget(blackHole.target);
+                    room.renderer.clear();
+                    room.renderer.render(room.scene, room.camera);
+                    room.renderer.setRenderTarget(null);
+                    room.renderer.render(blackHole.quadScene, blackHole.quadCamera);
+                } else {
+                    room.renderer.render(room.scene, room.camera);
+                }
+                if (domMode && room.cssRenderer) {
+                    room.cssRenderer.render(room.cssScene, room.camera);
+                }
+            }
+
+            function finishIntro() {
+                if (player.playing) return;
+                player.animating = false;
+                player.playing = true;
+                player.sitting = false;
+                if (anim && anim.to) {
+                    player.x = anim.to.x;
+                    player.z = anim.to.z;
+                    player.y = 0;
+                    lookAtScreenFrom(anim.to);
+                }
+                player.vx = player.vy = player.vz = 0;
+                room.camera.fov = FOV_STAND;
+                room.camera.updateProjectionMatrix();
+                layoutMonitorHtml(room.screen.w, room.screen.h);
+                document.body.classList.add("room-playing");
+                syncScreenInteractive();
+                markRender();
+                refreshHint();
+            }
+
+            function setFov(fov) {
+                room.camera.fov = fov;
+                room.camera.updateProjectionMatrix();
+            }
+
+            function beginPoseAnim(kind, to, toFov, duration) {
+                if (document.pointerLockElement) document.exitPointerLock();
+                player.animating = true;
+                setScreenInteractive(false);
+                markRender();
+                player.vx = player.vy = player.vz = 0;
+                const target = new THREE.Vector3(room.screen.x, room.screen.y, room.screen.z);
+                const dx = target.x - to.x;
+                const dy = target.y - to.y;
+                const dz = target.z - to.z;
+                anim = {
+                    kind: kind,
+                    from: room.camera.position.clone(),
+                    to: to,
+                    fromYaw: player.yaw,
+                    toYaw: Math.atan2(-dx, -dz),
+                    fromPitch: player.pitch,
+                    toPitch: Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)),
+                    fromFov: room.camera.fov,
+                    toFov: toFov,
+                    start: performance.now(),
+                    duration: duration
+                };
+            }
+
+            function sitDown() {
+                if (!player.playing || player.animating || player.sitting) return;
+                player.standX = player.x;
+                player.standZ = player.z;
+                beginPoseAnim("sit", sitCameraPos(), FOV_SIT, 3200);
+                clearPrompt();
+            }
+
+            function standUp() {
+                if (!player.playing || player.animating || !player.sitting) return;
+                player.sitting = false;
+                const to = new THREE.Vector3(
+                    player.standX != null ? player.standX : player.x,
+                    EYE,
+                    player.standZ != null ? player.standZ : player.z
+                );
+                beginPoseAnim("stand", to, FOV_STAND, 2600);
+                clearPrompt();
+            }
+
+            function clearPrompt() {
+                lastHint = "";
+                if (prompt) {
+                    prompt.textContent = "";
+                    prompt.classList.remove("show");
+                }
+            }
+
+            // Look mode is "the room has the controls": pointer lock on desktop, the touch
+            // sticks on mobile. Out of it, the page on the monitor takes the input.
+            function inLookMode() {
+                return touch.enabled ? touch.lookMode : player.locked;
+            }
+
+            // The HUD is one contextual line plus a static key legend, rather than a
+            // paragraph of instructions restated every frame.
+            function refreshHint() {
+                if (player.animating || blackHole) return;
+                document.body.classList.toggle("room-look", inLookMode());
+
+                let next = "";
+                if (player.sitting) {
+                    next = touch.enabled ? "<b>STAND</b> to get up" : "<b>E</b> stand up";
+                } else if (lookingAtChair()) {
+                    next = touch.enabled ? "<b>SIT</b> to sit down" : "<b>E</b> sit down";
+                } else if (!inLookMode()) {
+                    next = touch.enabled
+                        ? "Tap the screen to use it"
+                        : "Click the room to look around";
+                }
+                if (next !== lastHint) {
+                    lastHint = next;
+                    if (prompt) {
+                        prompt.innerHTML = next;
+                        prompt.classList.toggle("show", next !== "");
+                    }
+                }
+                if (sitBtn) sitBtn.textContent = player.sitting ? "STAND" : "SIT";
+                if (useBtn) useBtn.textContent = touch.lookMode ? "USE" : "MOVE";
+            }
+
+            function updateScreenFacing() {
+                if (blackHole) return;
+                const cam = room.camera.position;
+                const toCam = tmpToCam.set(
+                    cam.x - room.screen.x,
+                    cam.y - room.screen.y,
+                    cam.z - room.screen.z
+                );
+                const normal = tmpNormal.set(0, 0, 1).applyQuaternion(room.screenGlass.quaternion);
+                const visible = toCam.dot(normal) > 0.12;
+                overlay.style.visibility = visible ? "visible" : "hidden";
+            }
+
+            let last = 0;
+            let anim = null;
+            let raf = 0;
+            let blackHole = null;
+
+            // Easter egg: pressing ? once you are already inside the room. The room is
+            // rendered off-screen and resampled through a gravitational lens, so the desk,
+            // the walls and the monitor genuinely bend into the singularity rather than
+            // being hidden behind a black sprite.
+            //
+            // The lens is a single texture fetch per pixel, after Darryl Huffman's WebGL
+            // black hole: pull falls off as 1/r^2 from the centre, the sample offset is
+            // scaled by cos((pull + swirl) * PI) to give the concentric inversion rings,
+            // and the same pull term darkens the result so the core goes black on its own.
+            const VOID_PULL = 2600;
+            const VOID_MASS = 0.019;
+
+            const LENS_VERT = [
+                "varying vec2 vUv;",
+                "void main() {",
+                "    vUv = uv;",
+                "    gl_Position = vec4(position.xy, 0.0, 1.0);",
+                "}"
+            ].join("\n");
+
+            const LENS_FRAG = [
+                "precision mediump float;",
+                "#define PI 3.14159265359",
+                "uniform sampler2D u_image;",
+                "uniform vec2 u_center;",
+                "uniform float u_aspect;",
+                "uniform float u_mass;",
+                "uniform float u_swirl;",
+                "varying vec2 vUv;",
+                "void main() {",
+                "    vec2 toCenter = vUv - u_center;",
+                "    float dist = length(toCenter * vec2(u_aspect, 1.0));",
+                "    float pull = u_mass / max(dist * dist, 1e-6);",
+                "    float k = cos((pull + u_swirl) * PI);",
+                "    vec2 sampleUv = u_center + toCenter * k;",
+                "    vec3 color = texture2D(u_image, sampleUv).rgb - pull * 0.25;",
+                "    gl_FragColor = vec4(max(color, vec3(0.0)), 1.0);",
+                "}"
+            ].join("\n");
+
+            function startBlackHole() {
+                if (blackHole || !room || !player.playing) return;
+                if (document.pointerLockElement) document.exitPointerLock();
+                setScreenInteractive(false);
+                releaseKeys();
+                anim = null;
+                player.animating = false;
+                player.vx = player.vy = player.vz = 0;
+
+                // With HTML-in-Canvas the page is already a texture in the scene, so it gets
+                // lensed along with everything else. Without it the page is a DOM overlay
+                // the shader cannot touch, and the spiral below carries it in instead.
+                if (room.htmlSurface) setScreenMode("canvas");
+
+                const size = new THREE.Vector2();
+                room.renderer.getSize(size);
+                const dpr = room.renderer.getPixelRatio();
+                const target = new THREE.WebGLRenderTarget(
+                    Math.max(1, Math.floor(size.x * dpr)),
+                    Math.max(1, Math.floor(size.y * dpr)),
+                    { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat }
+                );
+
+                const material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        u_image: { value: target.texture },
+                        u_center: { value: new THREE.Vector2(0.5, 0.5) },
+                        u_aspect: { value: Math.max(size.x, 1) / Math.max(size.y, 1) },
+                        u_mass: { value: 0 },
+                        u_swirl: { value: 0 }
+                    },
+                    vertexShader: LENS_VERT,
+                    fragmentShader: LENS_FRAG,
+                    depthTest: false,
+                    depthWrite: false
+                });
+                const quadScene = new THREE.Scene();
+                quadScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
+
+                blackHole = {
+                    target: target,
+                    material: material,
+                    quadScene: quadScene,
+                    quadCamera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1),
+                    start: performance.now(),
+                    done: false,
+                    fromPos: room.screenGlass.position.clone(),
+                    fromScale: room.screenGlass.scale.clone()
+                };
+                clearPrompt();
+                markRender();
+            }
+
+            function stepBlackHole(now) {
+                const k = easeInOut(Math.min(1, (now - blackHole.start) / VOID_PULL));
+                const glass = room.screenGlass;
+
+                // The page spirals inward as it is drawn down.
+                const shrink = Math.max(1 - k, 0.0001);
+                glass.scale.set(blackHole.fromScale.x * shrink, blackHole.fromScale.y * shrink, 1);
+                const spin = k * Math.PI * 3;
+                const radius = 0.17 * Math.sin(k * Math.PI);
+                glass.position.set(
+                    blackHole.fromPos.x + Math.cos(spin) * radius,
+                    blackHole.fromPos.y + Math.sin(spin) * radius * 0.6,
+                    blackHole.fromPos.z
+                );
+                glass.rotation.z = spin * 0.6;
+
+                // Anchor the singularity to where the screen actually is on the viewport.
+                lensCenter.set(blackHole.fromPos.x, blackHole.fromPos.y, blackHole.fromPos.z);
+                lensCenter.project(room.camera);
+                const uniforms = blackHole.material.uniforms;
+                uniforms.u_center.value.set(lensCenter.x * 0.5 + 0.5, lensCenter.y * 0.5 + 0.5);
+                uniforms.u_mass.value = VOID_MASS * k;
+                uniforms.u_swirl.value = k * 1.15;
+
+                if (k >= 1 && !blackHole.done) {
+                    blackHole.done = true;
+                    glass.visible = false;
+                    overlay.style.visibility = "hidden";
+                    document.body.classList.add("room-void");
+                }
+                markRender();
+            }
+
+            function clearBlackHole() {
+                document.body.classList.remove("room-void");
+                if (!blackHole) return;
+                room.renderer.setRenderTarget(null);
+                blackHole.target.dispose();
+                blackHole.material.dispose();
+                blackHole.quadScene.traverse((node) => {
+                    if (node.geometry) node.geometry.dispose();
+                });
+                const glass = room.screenGlass;
+                glass.position.copy(blackHole.fromPos);
+                glass.scale.copy(blackHole.fromScale);
+                glass.rotation.z = 0;
+                glass.visible = true;
+                overlay.style.visibility = "";
+                blackHole = null;
+            }
+
+            function easeInOut(t) {
+                return t * t * t * (t * (t * 6 - 15) + 10);
+            }
+
+            function easePull(t) {
+                return easeInOut(easeInOut(t));
+            }
+
+            function tick(now) {
+                raf = requestAnimationFrame(tick);
+                const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+                last = now;
+                if (player.animating || player.locked || touch.stick.active || touch.jump ||
+                    keys.KeyW || keys.KeyA || keys.KeyS || keys.KeyD || keys.Space ||
+                    Math.hypot(player.vx, player.vz) > 0.004 || !player.onGround) {
+                    needsRender = true;
+                }
+
+                if (blackHole) {
+                    stepBlackHole(now);
+                } else if (player.animating && anim) {
+                    const t = Math.min(1, (now - anim.start) / anim.duration);
+                    const k = anim.kind === "intro" ? easePull(t) : easeInOut(t);
+                    const pos = animPos.copy(anim.from).lerp(anim.to, k);
+                    player.x = pos.x;
+                    player.y = 0;
+                    player.z = pos.z;
+                    if (anim.kind === "intro") {
+                        lookAtScreenFrom(pos);
+                        if (anim.fromFov != null) {
+                            setFov(anim.fromFov + (anim.toFov - anim.fromFov) * k);
+                        }
+                        if (t >= 1) finishIntro();
+                    } else {
+                        room.camera.position.copy(pos);
+                        player.yaw = lerpAngle(anim.fromYaw, anim.toYaw, k);
+                        player.pitch = anim.fromPitch + (anim.toPitch - anim.fromPitch) * k;
+                        setFov(anim.fromFov + (anim.toFov - anim.fromFov) * k);
+                        applyYawPitch();
+                        if (t >= 1) {
+                            player.animating = false;
+                            player.x = anim.to.x;
+                            player.z = anim.to.z;
+                            if (anim.kind === "sit") player.sitting = true;
+                            if (anim.kind === "stand") player.sitting = false;
+                            setFov(anim.toFov);
+                            syncScreenInteractive();
+                            refreshHint();
+                        }
+                    }
+                } else if (player.playing && !player.sitting) {
+                    // strafe: +right, back: +backward. Keyboard is digital; the mobile
+                    // stick is analog and its magnitude scales wishspeed, so a half-pushed
+                    // thumb walks rather than runs.
+                    let strafe = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0);
+                    let back = (keys.KeyS ? 1 : 0) - (keys.KeyW ? 1 : 0);
+                    if (touch.stick.active) {
+                        strafe = touch.stick.x;
+                        back = -touch.stick.y;
+                    }
+                    const inputLen = Math.min(1, Math.hypot(strafe, back));
+
+                    const sin = Math.sin(player.yaw);
+                    const cos = Math.cos(player.yaw);
+                    let wishX = strafe * cos + back * sin;
+                    let wishZ = -strafe * sin + back * cos;
+                    const wishLen = Math.hypot(wishX, wishZ);
+                    if (wishLen > 0) {
+                        wishX /= wishLen;
+                        wishZ /= wishLen;
+                    }
+                    const sprinting = keys.ShiftLeft || keys.ShiftRight || touch.stick.sprint;
+                    const wishSpeed = wishLen > 0
+                        ? (sprinting ? SPEED_SPRINT : SPEED_WALK) * inputLen
+                        : 0;
+
+                    // Source splits gravity around the move so the jump arc integrates
+                    // correctly at any framerate.
+                    player.vy -= SV_GRAVITY * dt * 0.5;
+
+                    const jumpHeld = keys.Space || touch.jump;
+                    if (!jumpHeld) player.jumpLatched = false;
+
+                    if (player.onGround) {
+                        if (jumpHeld && !player.jumpLatched) {
+                            player.vy = JUMP_IMPULSE;
+                            player.onGround = false;
+                            player.jumpLatched = true;
+                        } else {
+                            applyFriction(dt);
+                            accelerate(wishX, wishZ, wishSpeed, SV_ACCELERATE, dt);
+                        }
+                    } else {
+                        airAccelerate(wishX, wishZ, wishSpeed, dt);
+                    }
+
+                    const nx = player.x + player.vx * dt;
+                    const nz = player.z + player.vz * dt;
+                    const hit = collide(nx, nz);
+                    if (hit.x !== nx) player.vx = 0;
+                    if (hit.z !== nz) player.vz = 0;
+                    player.x = hit.x;
+                    player.z = hit.z;
+
+                    player.y += player.vy * dt;
+                    player.vy -= SV_GRAVITY * dt * 0.5;
+                    if (player.y <= 0) {
+                        if (!player.onGround) {
+                            view.impact = Math.min(1, Math.abs(player.vy) / (JUMP_IMPULSE * 1.3));
+                        }
+                        player.y = 0;
+                        player.vy = 0;
+                        player.onGround = true;
+                    }
+
+                    updateViewBob(dt);
+                    setCameraFromPlayer();
+                } else if (player.playing && player.sitting) {
+                    updateViewBob(dt);
+                    setCameraFromPlayer();
+                }
+
+                if (player.playing && !player.animating && !blackHole) refreshHint();
+
+                if (!needsRender) return;
+                needsRender = false;
+                renderRoom();
+            }
+
+            function startAnimation() {
+                room.resize();
+                setFov(FOV_FILL);
+                layoutMonitorHtml(room.screen.w, room.screen.h);
+                const d0 = Math.max(fillDistance(), 0.12);
+                const start = new THREE.Vector3(room.screen.x, room.screen.y, room.screen.z + d0);
+                const end = introStandPos();
+                lookAtScreenFrom(start);
+                player.x = start.x;
+                player.y = 0;
+                player.z = start.z;
+                player.vx = player.vy = player.vz = 0;
+                player.playing = false;
+                player.animating = false;
+                player.sitting = false;
+                document.body.classList.remove("room-playing");
+                markRender();
+                if (reduceMotion) {
+                    setFov(FOV_STAND);
+                    lookAtScreenFrom(end);
+                    player.x = end.x;
+                    player.z = end.z;
+                    finishIntro();
+                    if (!raf) raf = requestAnimationFrame(tick);
+                    renderRoom();
+                    return;
+                }
+                player.animating = true;
+                anim = {
+                    kind: "intro",
+                    from: start,
+                    to: end,
+                    fromFov: FOV_FILL,
+                    toFov: FOV_STAND,
+                    start: performance.now(),
+                    duration: 5500
+                };
+                clearPrompt();
+                if (!raf) raf = requestAnimationFrame(tick);
+                renderRoom();
+            }
+
+            function requestLook() {
+                setScreenInteractive(false);
+                const pending = layer.requestPointerLock();
+                if (pending && typeof pending.catch === "function") pending.catch(() => {});
+            }
+
+            function lockPointer() {
+                if (!document.body.classList.contains("room-active")) return;
+                if (player.playing && player.animating) return;
+                requestLook();
+            }
+
+            function onMouseMove(event) {
+                if (!player.locked || !player.playing || player.animating) return;
+                player.yaw -= event.movementX * LOOK_SCALE;
+                player.pitch -= event.movementY * LOOK_SCALE;
+                const lim = player.sitting ? Math.PI / 5 : PITCH_LIMIT;
+                player.pitch = Math.max(-lim, Math.min(lim, player.pitch));
+                markRender();
+            }
+
+            function onPointerLock() {
+                player.locked = document.pointerLockElement === layer;
+                syncScreenInteractive();
+                refreshHint();
+            }
+
+            function restoreApp() {
+                const app = document.querySelector(".app");
+                if (app) {
+                    app.style.width = "";
+                    app.style.height = "";
+                    app.style.maxHeight = "";
+                }
+                if (!room || !room.appHome || !app) return;
+                if (room.appHome.next && room.appHome.next.parentNode === room.appHome.parent) {
+                    room.appHome.parent.insertBefore(app, room.appHome.next);
+                } else {
+                    room.appHome.parent.appendChild(app);
+                }
+                room.appHome = null;
+            }
+
+            function exitRoom() {
+                if (document.pointerLockElement) document.exitPointerLock();
+                player.playing = false;
+                player.animating = false;
+                player.locked = false;
+                player.sitting = false;
+                releaseKeys();
+                setScreenInteractive(false);
+                clearBlackHole();
+                // Hand the page back to the CSS3D mount before restoring it, so it never
+                // ends up orphaned inside the capture canvas.
+                setScreenMode("dom");
+                if (room) setFov(FOV_STAND);
+                cancelAnimationFrame(raf);
+                raf = 0;
+                restoreApp();
+                overlay.style.display = "";
+                overlay.style.opacity = "";
+                overlay.style.visibility = "";
+                clearPrompt();
+                resetTouch();
+                if (touch.enabled) releaseLandscape();
+                document.body.classList.remove("room-active", "room-playing", "room-touch", "room-look");
+                layer.hidden = true;
+            }
+
+            // Landscape gate. Fullscreen first, because orientation.lock is only permitted
+            // from fullscreen on Android, and is refused outright on iOS Safari -- so the
+            // lock is an optimisation and the visual prompt is the actual mechanism.
+            let awaitingLandscape = false;
+
+            async function requestLandscape() {
+                const root = document.documentElement;
+                try {
+                    if (!document.fullscreenElement && root.requestFullscreen) {
+                        await root.requestFullscreen({ navigationUI: "hide" });
+                    }
+                } catch (error) {
+                    /* refused; the prompt still gets the user there */
+                }
+                try {
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock("landscape");
+                    }
+                } catch (error) {
+                    /* iOS and some Android browsers refuse; fall through to the prompt */
+                }
+                return isLandscape();
+            }
+
+            function showRotateGate() {
+                awaitingLandscape = true;
+                if (rotateGate) rotateGate.hidden = false;
+            }
+
+            function hideRotateGate() {
+                awaitingLandscape = false;
+                if (rotateGate) rotateGate.hidden = true;
+            }
+
+            function releaseLandscape() {
+                try {
+                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                } catch (error) {
+                    /* nothing to undo */
+                }
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+
+            function onOrientationChange() {
+                if (!awaitingLandscape || !isLandscape()) return;
+                hideRotateGate();
+                enterRoom();
+            }
+
+            window.addEventListener("orientationchange", () => setTimeout(onOrientationChange, 120));
+            window.addEventListener("resize", onOrientationChange);
+            if (rotateCancel) rotateCancel.addEventListener("click", () => {
+                hideRotateGate();
+                releaseLandscape();
+            });
+
+            async function enterRoom() {
+                touch.enabled = isTouchDevice();
+                if (touch.enabled && !isLandscape()) {
+                    const ok = await requestLandscape();
+                    if (!ok) {
+                        showRotateGate();
+                        return;
+                    }
+                }
+                document.body.classList.toggle("room-touch", touch.enabled);
+                document.body.classList.add("room-active");
+                layer.hidden = false;
+                if (touch.enabled) {
+                    touch.lookMode = true;
+                    resetTouch();
+                } else {
+                    requestLook();
+                }
+                try {
+                    await ensureRoomLibs();
+                    if (!room) room = createRoom();
+                    if (room.propsReady) await room.propsReady;
+                    const app = document.querySelector(".app");
+                    if (app && app.parentNode !== room.mount) {
+                        room.appHome = { parent: app.parentNode, next: app.nextSibling };
+                        room.mount.appendChild(app);
+                    }
+                    room.resize();
+                    applyPalette(room);
+                    last = performance.now();
+                    startAnimation();
+                } catch (error) {
+                    console.error(error);
+                    if (document.pointerLockElement) document.exitPointerLock();
+                    document.body.classList.remove("room-active");
+                    layer.hidden = true;
+                    window.alert("The 3D room could not start in this browser.");
+                }
+            }
+
+            // -- touch controls --------------------------------------------------------
+            // The scheme every mobile shooter converges on: a floating stick under the left
+            // thumb, free-look anywhere on the right, and actions as real buttons out of
+            // both thumbs' way. Pointer events carry an id, which is what lets the two
+            // thumbs drive movement and look at the same time.
+            const STICK_RADIUS = 58;
+            const STICK_DEADZONE = 0.14;
+            const STICK_SPRINT = 0.92;
+
+            function resetTouch() {
+                touch.stick.active = false;
+                touch.stick.sprint = false;
+                touch.stick.x = 0;
+                touch.stick.y = 0;
+                touch.stick.id = -1;
+                touch.look.id = -1;
+                touch.jump = false;
+                if (stickEl) stickEl.classList.remove("active", "sprint");
+                if (nubEl) nubEl.style.transform = "";
+                if (jumpBtn) jumpBtn.classList.remove("held");
+            }
+
+            function placeStick(clientX, clientY) {
+                const rect = layer.getBoundingClientRect();
+                touch.stick.baseX = clientX;
+                touch.stick.baseY = clientY;
+                if (!stickEl) return;
+                stickEl.style.left = (clientX - rect.left) + "px";
+                stickEl.style.top = (clientY - rect.top) + "px";
+                stickEl.classList.add("active");
+            }
+
+            function updateStick(clientX, clientY) {
+                let dx = clientX - touch.stick.baseX;
+                let dy = clientY - touch.stick.baseY;
+                const dist = Math.hypot(dx, dy);
+                if (dist > STICK_RADIUS) {
+                    dx = (dx / dist) * STICK_RADIUS;
+                    dy = (dy / dist) * STICK_RADIUS;
+                }
+                if (nubEl) nubEl.style.transform = "translate(" + dx + "px," + dy + "px)";
+
+                let nx = dx / STICK_RADIUS;
+                let ny = -dy / STICK_RADIUS;
+                const mag = Math.hypot(nx, ny);
+                if (mag < STICK_DEADZONE) {
+                    touch.stick.x = 0;
+                    touch.stick.y = 0;
+                    touch.stick.sprint = false;
+                } else {
+                    // Rescale past the dead zone so the first millimetre of travel is not a
+                    // jump straight to walking speed.
+                    const scaled = (mag - STICK_DEADZONE) / (1 - STICK_DEADZONE) / mag;
+                    touch.stick.x = nx * scaled;
+                    touch.stick.y = ny * scaled;
+                    touch.stick.sprint = mag > STICK_SPRINT;
+                }
+                if (stickEl) stickEl.classList.toggle("sprint", touch.stick.sprint);
+                markRender();
+            }
+
+            function onPointerDown(event) {
+                if (!touch.enabled || !player.playing || !touch.lookMode) return;
+                if (event.target.closest(".touch-btn, .room-exit")) return;
+                const rect = layer.getBoundingClientRect();
+                const isLeft = (event.clientX - rect.left) < rect.width * 0.5;
+                if (isLeft && touch.stick.id === -1) {
+                    touch.stick.id = event.pointerId;
+                    touch.stick.active = true;
+                    placeStick(event.clientX, event.clientY);
+                    updateStick(event.clientX, event.clientY);
+                    event.preventDefault();
+                } else if (!isLeft && touch.look.id === -1) {
+                    touch.look.id = event.pointerId;
+                    touch.look.lastX = event.clientX;
+                    touch.look.lastY = event.clientY;
+                    event.preventDefault();
+                }
+            }
+
+            function onPointerMove(event) {
+                if (!touch.enabled) return;
+                if (event.pointerId === touch.stick.id) {
+                    updateStick(event.clientX, event.clientY);
+                    event.preventDefault();
+                } else if (event.pointerId === touch.look.id) {
+                    if (!player.animating) {
+                        player.yaw -= (event.clientX - touch.look.lastX) * TOUCH_LOOK_SCALE;
+                        player.pitch -= (event.clientY - touch.look.lastY) * TOUCH_LOOK_SCALE;
+                        const lim = player.sitting ? Math.PI / 5 : PITCH_LIMIT;
+                        player.pitch = Math.max(-lim, Math.min(lim, player.pitch));
+                        markRender();
+                    }
+                    touch.look.lastX = event.clientX;
+                    touch.look.lastY = event.clientY;
+                    event.preventDefault();
+                }
+            }
+
+            function onPointerUp(event) {
+                if (event.pointerId === touch.stick.id) {
+                    touch.stick.id = -1;
+                    touch.stick.active = false;
+                    touch.stick.sprint = false;
+                    touch.stick.x = 0;
+                    touch.stick.y = 0;
+                    if (stickEl) stickEl.classList.remove("active", "sprint");
+                    if (nubEl) nubEl.style.transform = "";
+                    markRender();
+                } else if (event.pointerId === touch.look.id) {
+                    touch.look.id = -1;
+                }
+            }
+
+            layer.addEventListener("pointerdown", onPointerDown);
+            layer.addEventListener("pointermove", onPointerMove, { passive: false });
+            layer.addEventListener("pointerup", onPointerUp);
+            layer.addEventListener("pointercancel", onPointerUp);
+
+            // Touch scrolling inside a CSS3D-transformed subtree fails for the same reason
+            // the wheel does, so drags on the page are turned into scrollTop directly. The
+            // page is projected smaller than the viewport, so a finger travelling n screen
+            // pixels has to move the content by more than n page pixels to feel attached.
+            const dragScroll = { id: -1, target: null, lastY: 0 };
+
+            function screenScrollRatio() {
+                const app = overlay.querySelector(".app");
+                if (!app || !room || !room.htmlW) return 1;
+                const rect = app.getBoundingClientRect();
+                return rect.width < 1 ? 1 : room.htmlW / rect.width;
+            }
+
+            layer.addEventListener("pointerdown", (event) => {
+                if (!player.playing || inLookMode() || event.pointerType === "mouse") return;
+                const target = scrollableUnder(event.clientX, event.clientY);
+                if (!target) return;
+                dragScroll.id = event.pointerId;
+                dragScroll.target = target;
+                dragScroll.lastY = event.clientY;
+            });
+
+            layer.addEventListener("pointermove", (event) => {
+                if (event.pointerId !== dragScroll.id || !dragScroll.target) return;
+                dragScroll.target.scrollTop -= (event.clientY - dragScroll.lastY) * screenScrollRatio();
+                dragScroll.lastY = event.clientY;
+                event.preventDefault();
+            }, { passive: false });
+
+            const endDragScroll = (event) => {
+                if (event.pointerId !== dragScroll.id) return;
+                dragScroll.id = -1;
+                dragScroll.target = null;
+            };
+            layer.addEventListener("pointerup", endDragScroll);
+            layer.addEventListener("pointercancel", endDragScroll);
+
+            function bindHold(el, onDown, onUp) {
+                if (!el) return;
+                el.addEventListener("pointerdown", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    el.classList.add("held");
+                    onDown();
+                });
+                const release = (event) => {
+                    if (event) event.stopPropagation();
+                    el.classList.remove("held");
+                    if (onUp) onUp();
+                };
+                el.addEventListener("pointerup", release);
+                el.addEventListener("pointercancel", release);
+                el.addEventListener("pointerleave", release);
+            }
+
+            bindHold(jumpBtn, () => { touch.jump = true; markRender(); }, () => { touch.jump = false; });
+
+            if (sitBtn) {
+                sitBtn.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    if (player.sitting) standUp();
+                    else sitDown();
+                });
+            }
+
+            if (useBtn) {
+                useBtn.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    touch.lookMode = !touch.lookMode;
+                    resetTouch();
+                    syncScreenInteractive();
+                    refreshHint();
+                    markRender();
+                });
+            }
+
+            window.updateRoomTheme = function () {
+                if (!room) return;
+                applyPalette(room);
+                // The captured page carries its own colours, so it needs a fresh capture.
+                if (room.htmlSurface) room.htmlSurface.repaint();
+                markRender();
+            };
+
+            enterBtn.addEventListener("click", (event) => {
+                if (document.body.classList.contains("room-active")) {
+                    event.preventDefault();
+                    startBlackHole();
+                    return;
+                }
+                enterRoom();
+            });
+            if (exitBtn) exitBtn.addEventListener("click", exitRoom);
+            layer.addEventListener("click", (event) => {
+                if (!event.isTrusted) return;
+                if (event.target.closest(".room-exit")) return;
+                if (eventHitsScreen(event)) return;
+                lockPointer();
+            });
+            layer.addEventListener("contextmenu", (event) => {
+                if (eventHitsScreen(event)) return;
+                event.preventDefault();
+                if (event.target.closest(".room-exit")) return;
+                lockPointer();
+            });
+
+            // Clicks and hover resolve through the CSS3D projection, but wheel events are
+            // routed by a compositor hit test that ignores it, so they never reach the
+            // scroller on the monitor. elementFromPoint does follow the projection, so use
+            // it to find the real scroller and drive it directly.
+            function scrollableUnder(clientX, clientY) {
+                let el = document.elementFromPoint(clientX, clientY);
+                if (!el || !overlay.contains(el)) return null;
+                while (el && el !== overlay) {
+                    const overflowY = getComputedStyle(el).overflowY;
+                    if ((overflowY === "auto" || overflowY === "scroll") &&
+                        el.scrollHeight > el.clientHeight + 1) {
+                        return el;
+                    }
+                    el = el.parentElement;
+                }
+                return null;
+            }
+
+            layer.addEventListener("wheel", (event) => {
+                if (!player.playing || player.animating || player.locked) return;
+                const target = scrollableUnder(event.clientX, event.clientY);
+                if (!target) return;
+                target.scrollTop += event.deltaY;
+                event.preventDefault();
+            }, { passive: false });
+            document.addEventListener("pointerlockchange", onPointerLock);
+            document.addEventListener("mousemove", onMouseMove);
             document.addEventListener("keydown", (event) => {
-                if (event.key === "Escape") setNavOpen(false);
+                if (!document.body.classList.contains("room-active")) return;
+                keys[event.code] = true;
+                if (event.code === "Escape") {
+                    if (player.locked) return;
+                    event.preventDefault();
+                    exitRoom();
+                }
+                if (event.code === "KeyE" && player.playing && !player.animating) {
+                    event.preventDefault();
+                    if (player.sitting) standUp();
+                    else if (lookingAtChair()) sitDown();
+                }
+                if (player.sitting && ["KeyW", "KeyA", "KeyS", "KeyD"].includes(event.code)) {
+                    event.preventDefault();
+                    standUp();
+                }
+                if (player.locked && ["KeyW", "KeyA", "KeyS", "KeyD", "Space"].includes(event.code)) {
+                    event.preventDefault();
+                }
+            });
+            document.addEventListener("keyup", (event) => {
+                keys[event.code] = false;
+            });
+            window.addEventListener("blur", releaseKeys);
+            window.addEventListener("resize", () => {
+                if (!room || !document.body.classList.contains("room-active")) return;
+                room.resize();
+                if (blackHole) {
+                    const size = new THREE.Vector2();
+                    room.renderer.getSize(size);
+                    const dpr = room.renderer.getPixelRatio();
+                    blackHole.target.setSize(
+                        Math.max(1, Math.floor(size.x * dpr)),
+                        Math.max(1, Math.floor(size.y * dpr))
+                    );
+                    blackHole.material.uniforms.u_aspect.value =
+                        Math.max(size.x, 1) / Math.max(size.y, 1);
+                }
+                if (!player.animating) layoutMonitorHtml(room.screen.w, room.screen.h);
+                markRender();
             });
         })();
     </script>
