@@ -971,11 +971,10 @@
             display: none;
         }
 
-        /* In use mode the page owns the screen, so the movement controls only get in the
-           way -- only the toggle back to MOVE stays on screen. */
+        /* Seated at the desk the page owns the input, so movement controls would only be
+           in the way -- but STAND has to stay, or there is no way back up. */
         body.room-touch:not(.room-look) .touch-stick,
-        body.room-touch:not(.room-look) .touch-jump,
-        body.room-touch:not(.room-look) #touch-sit {
+        body.room-touch:not(.room-look) .touch-jump {
             display: none;
         }
 
@@ -1790,8 +1789,8 @@
                 <span class="hud-chip"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>move</span>
                 <span class="hud-chip"><kbd>Shift</kbd>sprint</span>
                 <span class="hud-chip"><kbd>Space</kbd>jump</span>
-                <span class="hud-chip"><kbd>E</kbd>sit</span>
-                <span class="hud-chip"><kbd>Esc</kbd>use the screen</span>
+                <span class="hud-chip"><kbd>E</kbd>use the desk</span>
+                <span class="hud-chip"><kbd>Esc</kbd>cursor</span>
             </div>
             <div class="touch-ui" id="touch-ui">
                 <div class="touch-stick" id="touch-stick" aria-hidden="true">
@@ -1799,8 +1798,7 @@
                 </div>
                 <div class="touch-buttons">
                     <div class="touch-col">
-                        <button class="touch-btn" id="touch-use" type="button">USE</button>
-                        <button class="touch-btn" id="touch-sit" type="button">SIT</button>
+                        <button class="touch-btn" id="touch-desk" type="button">USE</button>
                     </div>
                     <button class="touch-btn touch-jump" id="touch-jump" type="button">JUMP</button>
                 </div>
@@ -2090,8 +2088,8 @@
             const stickEl = document.getElementById("touch-stick");
             const nubEl = document.getElementById("touch-nub");
             const jumpBtn = document.getElementById("touch-jump");
-            const sitBtn = document.getElementById("touch-sit");
-            const useBtn = document.getElementById("touch-use");
+            // "USE / STAND" -- sit at the desk. Distinct from the mode button below.
+            const deskBtn = document.getElementById("touch-desk");
             const glCanvas = document.getElementById("room-gl");
             const overlay = document.getElementById("monitor-overlay");
             const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -3208,7 +3206,6 @@
             // Touch state, mirrored into the same movement code the keyboard feeds.
             const touch = {
                 enabled: false,
-                lookMode: true,
                 jump: false,
                 stick: { active: false, sprint: false, x: 0, y: 0, id: -1, baseX: 0, baseY: 0 },
                 look: { id: -1, lastX: 0, lastY: 0 }
@@ -3690,8 +3687,11 @@
 
             // Look mode is "the room has the controls": pointer lock on desktop, the touch
             // sticks on mobile. Out of it, the page on the monitor takes the input.
+            // Sitting at the desk IS the screen mode: you sit down in order to use the
+            // computer, so the posture decides who the input belongs to. On desktop pointer
+            // lock already expresses the same thing, and the browser owns that.
             function inLookMode() {
-                return touch.enabled ? touch.lookMode : player.locked;
+                return touch.enabled ? !player.sitting : player.locked;
             }
 
             // The HUD is one contextual line plus a static key legend, rather than a
@@ -3702,13 +3702,15 @@
 
                 let next = "";
                 if (player.sitting) {
-                    next = touch.enabled ? "<b>STAND</b> to get up" : "<b>E</b> stand up";
-                } else if (lookingAtChair()) {
-                    next = touch.enabled ? "<b>SIT</b> to sit down" : "<b>E</b> sit down";
-                } else if (!inLookMode()) {
                     next = touch.enabled
-                        ? "Tap the screen to use it"
-                        : "Click the room to look around";
+                        ? "Tap the screen \u00b7 <b>STAND</b> to get up"
+                        : "<b>E</b> leave the desk";
+                } else if (!inLookMode()) {
+                    // Checked before the desk hint: in screen mode the USE button is hidden,
+                    // so prompting for it would point at a control that is not on screen.
+                    next = touch.enabled ? "" : "Click the room to look around";
+                } else if (lookingAtChair()) {
+                    next = touch.enabled ? "<b>USE</b> the desk" : "<b>E</b> use the desk";
                 }
                 if (next !== lastHint) {
                     lastHint = next;
@@ -3717,8 +3719,7 @@
                         prompt.classList.toggle("show", next !== "");
                     }
                 }
-                if (sitBtn) sitBtn.textContent = player.sitting ? "STAND" : "SIT";
-                if (useBtn) useBtn.textContent = touch.lookMode ? "USE" : "MOVE";
+                if (deskBtn) deskBtn.textContent = player.sitting ? "STAND" : "USE";
             }
 
             function updateScreenFacing() {
@@ -4360,7 +4361,6 @@
                 document.body.classList.add("room-active");
                 layer.hidden = false;
                 if (touch.enabled) {
-                    touch.lookMode = true;
                     resetTouch();
                 } else {
                     requestLook();
@@ -4453,7 +4453,7 @@
             }
 
             function onPointerDown(event) {
-                if (!touch.enabled || !player.playing || !touch.lookMode) return;
+                if (!touch.enabled || !player.playing || player.sitting) return;
                 if (event.target.closest(".touch-btn, .room-exit")) return;
                 const rect = layer.getBoundingClientRect();
                 const isLeft = (event.clientX - rect.left) < rect.width * 0.5;
@@ -4567,22 +4567,11 @@
 
             bindHold(jumpBtn, () => { touch.jump = true; markRender(); }, () => { touch.jump = false; });
 
-            if (sitBtn) {
-                sitBtn.addEventListener("click", (event) => {
+            if (deskBtn) {
+                deskBtn.addEventListener("click", (event) => {
                     event.stopPropagation();
                     if (player.sitting) standUp();
                     else sitDown();
-                });
-            }
-
-            if (useBtn) {
-                useBtn.addEventListener("click", (event) => {
-                    event.stopPropagation();
-                    touch.lookMode = !touch.lookMode;
-                    resetTouch();
-                    syncScreenInteractive();
-                    refreshHint();
-                    markRender();
                 });
             }
 
@@ -4642,8 +4631,18 @@
             }
 
             layer.addEventListener("wheel", (event) => {
-                if (!player.playing || player.animating || player.locked) return;
-                const target = scrollableUnder(event.clientX, event.clientY);
+                if (!player.playing || player.animating) return;
+                // Under pointer lock clientX/Y are frozen wherever the cursor was, so the
+                // crosshair is the pointer -- same rule the click path uses. Without this
+                // you could click a link while walking but never scroll the page.
+                let x = event.clientX;
+                let y = event.clientY;
+                if (player.locked) {
+                    const rect = layer.getBoundingClientRect();
+                    x = rect.left + rect.width / 2;
+                    y = rect.top + rect.height / 2;
+                }
+                const target = scrollableUnder(x, y);
                 if (!target) return;
                 target.scrollTop += event.deltaY;
                 event.preventDefault();
