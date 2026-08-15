@@ -3305,12 +3305,17 @@
                     surface.adopt(app);
                     material.map = surface.texture;
                     material.color.setHex(0xffffff);
-                    overlay.style.display = "none";
+                    // opacity, not display/visibility: those two remove the element from
+                    // hit testing, and the crosshair aims by hit testing the real page.
+                    // The baked texture provides the picture; this stays as the target.
+                    overlay.style.display = "";
+                    overlay.style.opacity = "0";
                 } else {
                     if (app && app.parentNode !== overlay) overlay.appendChild(app);
                     material.map = null;
                     material.color.setHex(0x0a0a0a);
                     overlay.style.display = "";
+                    overlay.style.opacity = "";
                     layoutMonitorHtml(room.screen.w, room.screen.h);
                 }
                 material.needsUpdate = true;
@@ -3354,10 +3359,11 @@
 
             function renderRoom() {
                 const domMode = room.screenMode !== "canvas";
-                if (domMode) {
-                    updateScreenFacing();
-                    syncMonitorPage();
-                } else if (room.htmlSurface) {
+                // Run in both modes: in canvas mode the overlay is invisible but still the
+                // crosshair's hit-test target, so it has to keep following the monitor.
+                updateScreenFacing();
+                syncMonitorPage();
+                if (!domMode && room.htmlSurface) {
                     room.htmlSurface.repaint();
                     room.htmlSurface.sync();
                 }
@@ -3372,7 +3378,7 @@
                 } else {
                     room.renderer.render(room.scene, room.camera);
                 }
-                if (domMode && room.cssRenderer) {
+                if (room.cssRenderer) {
                     room.cssRenderer.render(room.cssScene, room.camera);
                 }
             }
