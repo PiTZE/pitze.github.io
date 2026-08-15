@@ -2008,14 +2008,26 @@
             // off-screen. It isn't -- the page it lives in is on the monitor, so bailing
             // froze the cube on its last frame and a theme switch recoloured the material
             // with nothing left to redraw it. Two 32px canvases cost nothing; keep drawing.
-            function animate() {
+            // Two 32px WebGL contexts do not cost much on their own, but a getComputedStyle
+            // per canvas per frame forces a style recalc 120 times a second for the life of
+            // the page. offsetParent answers the same question without one, and 24fps is
+            // plenty for a slow tumble.
+            const CUBE_INTERVAL = 1000 / 24;
+            let cubeLast = 0;
+
+            function animate(now) {
                 requestAnimationFrame(animate);
+                if (now - cubeLast < CUBE_INTERVAL) return;
+                const step = Math.min((now - cubeLast) / 16.67, 4);
+                cubeLast = now;
+                // In the room the page is a baked snapshot, so a spinning cube is not
+                // visible and not worth drawing.
+                if (document.body.classList.contains("room-look")) return;
                 headerViewers.forEach((viewer) => {
-                    const style = getComputedStyle(viewer.canvas);
-                    if (style.display === "none" || style.visibility === "hidden") return;
+                    if (viewer.canvas.offsetParent === null) return;
                     if (viewer.cube) {
-                        viewer.cube.rotation.x += 0.003;
-                        viewer.cube.rotation.y += 0.004;
+                        viewer.cube.rotation.x += 0.003 * step;
+                        viewer.cube.rotation.y += 0.004 * step;
                     }
                     viewer.renderer.render(viewer.scene, viewer.camera);
                 });
@@ -2026,7 +2038,7 @@
             }
 
             if (headerViewers.length) {
-                animate();
+                requestAnimationFrame(animate);
                 window.addEventListener("resize", onWindowResize);
                 if ("ResizeObserver" in window) {
                     const observer = new ResizeObserver(() => onWindowResize());
@@ -2133,6 +2145,39 @@
             const gltfCache = Object.create(null);
             let roomLibs = null;
             let maxAnisotropy = 1;
+
+            // Adaptive resolution. Rendering at the device's full pixel ratio is what keeps
+            // the room as sharp as the 2D page, but a 3x phone is drawing nine times the
+            // fragments of a 1x one and not every phone can. Watch real frame times and
+            // give back resolution only when the device cannot keep up -- fast hardware
+            // never leaves full density.
+            const RES_STEPS = [1, 1.25, 1.5, 2, 2.5, 3];
+            const FRAME_SLOW = 24;      // ms -- below ~42fps
+            const FRAME_FAST = 13;      // ms -- comfortably above 60fps
+            let resIndex = RES_STEPS.length - 1;
+            let resSamples = [];
+            let resSettleAt = 0;
+
+            function targetPixelRatio() {
+                return Math.min(window.devicePixelRatio || 1, RES_STEPS[resIndex]);
+            }
+
+            function adaptResolution(now, dtMs) {
+                if (!room || !player.playing || blackHole) return;
+                resSamples.push(dtMs);
+                if (resSamples.length < 40) return;
+                const avg = resSamples.reduce((a, b) => a + b, 0) / resSamples.length;
+                resSamples.length = 0;
+                if (now < resSettleAt) return;
+                const before = resIndex;
+                if (avg > FRAME_SLOW && resIndex > 0) resIndex -= 1;
+                else if (avg < FRAME_FAST && resIndex < RES_STEPS.length - 1) resIndex += 1;
+                if (resIndex === before) return;
+                // A resize reallocates buffers, so leave room between adjustments.
+                resSettleAt = now + 2500;
+                room.renderer.setPixelRatio(targetPixelRatio());
+                markRender();
+            }
 
             function loadScript(src) {
                 if (!scriptLoads[src]) {
@@ -2269,9 +2314,12 @@
                 // ratio -- a phone is typically 3x density, so clamping to 1 was rendering
                 // a third-resolution image and stretching it over the screen.
                 const lowPower = isTouchDevice();
+                // Above 2x device pixels the backing store is already doing the job MSAA
+                // would; paying for both is most of why phones struggled.
+                const denseScreen = (window.devicePixelRatio || 1) >= 2;
                 const renderer = new THREE.WebGLRenderer({
                     canvas: glCanvas,
-                    antialias: true,
+                    antialias: !denseScreen,
                     alpha: false,
                     powerPreference: "high-performance"
                 });
@@ -2572,6 +2620,11 @@
                 sun.shadow.bias = -0.0006;
                 sun.shadow.normalBias = 0.022;
                 sun.shadow.radius = 2.5;
+                // Nothing in this room moves except the camera, and a shadow map does not
+                // depend on the camera. Render it once instead of every frame; anything
+                // that does change the scene (the chair arriving) asks for a refresh.
+                sun.shadow.autoUpdate = false;
+                sun.shadow.needsUpdate = true;
                 scene.add(sun);
                 scene.add(sun.target);
 
@@ -2609,7 +2662,7 @@
                     // The 2D site renders text at the device's native density; capping the
                     // room below that is exactly what made it look softer than the rest of
                     // the page. 3 is the ceiling only so 4x tablets do not melt.
-                    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 3));
+                    renderer.setPixelRatio(targetPixelRatio());
                     // A canvas is a replaced element: "inset: 0" cannot stretch it, so with
                     // width:auto it lays out at its backing-store size. Skipping the style
                     // update was fine while the pixel ratio was 1, but at 3 it displayed
@@ -2633,6 +2686,7 @@
                     screenMode: "dom",
                     mats,
                     panelMat,
+                    sun,
                     screenLight,
                     screenGlass,
                     screenMesh: null,
@@ -2934,6 +2988,7 @@
                     maxZ: placed.max.z - 0.05
                 };
                 clearProxy(roomState.chairProxy, roomState.chairGroup);
+                if (roomState.sun) roomState.sun.shadow.needsUpdate = true;
             }
 
             const keys = Object.create(null);
@@ -3704,12 +3759,16 @@
                 lensCenter.project(room.camera);
                 const uniforms = blackHole.material.uniforms;
                 uniforms.u_center.value.set(lensCenter.x * 0.5 + 0.5, lensCenter.y * 0.5 + 0.5);
-                const bend = Math.max(0, (k - 0.30) / 0.70);
-                uniforms.u_mass.value = VOID_MASS * bend * bend;
-                uniforms.u_swirl.value = bend * 1.15;
+                // Everything the collapse touches runs off the same k, at the same rate:
+                // the monitor shrinking, the room bending, the particles rising. The room
+                // used to start bending late and ramp quadratically -- that existed only to
+                // hide a crisp DOM overlay over an already-warped room, and the page is part
+                // of the scene now, so all it did was make the monitor look detached from
+                // the room it was being pulled into.
+                uniforms.u_mass.value = VOID_MASS * k;
+                uniforms.u_swirl.value = k * 1.15;
                 uniforms.u_time.value = (now - blackHole.start) * 0.001 * VOID_SPEED;
-                // The particles rise as the room dims, so one hands over to the other.
-                uniforms.u_progress.value = Math.pow(k, 0.75);
+                uniforms.u_progress.value = k;
 
                 uniforms.u_settle.value = blackHole.doneAt
                     ? Math.min(1, (now - blackHole.doneAt) / 2600)
@@ -3756,9 +3815,13 @@
 
             function tick(now) {
                 raf = requestAnimationFrame(tick);
-                const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+                const frameMs = now - last;
+                const dt = Math.min(0.05, frameMs / 1000 || 0.016);
                 last = now;
-                if (player.animating || player.locked || touch.stick.active || touch.jump ||
+                // Holding pointer lock is not motion: the camera only changes when the mouse
+                // actually moves, and onMouseMove already asks for a frame. Treating "locked"
+                // as "dirty" meant standing still in mouse-look redrew the room forever.
+                if (player.animating || touch.stick.active || touch.jump ||
                     keys.KeyW || keys.KeyA || keys.KeyS || keys.KeyD || keys.Space ||
                     Math.hypot(player.vx, player.vz) > 0.004 || !player.onGround) {
                     needsRender = true;
@@ -3873,9 +3936,13 @@
                     refreshCrosshair(now);
                 }
 
-                if (!needsRender && !player.playing) return;
+                if (!needsRender) return;
                 needsRender = false;
                 renderRoom();
+                // Only frames we actually drew say anything about how hard this device is
+                // working; sampling idle frames would ratchet the resolution up and then
+                // collapse it again the moment you moved.
+                if (frameMs > 0 && frameMs < 500) adaptResolution(now, frameMs);
             }
 
             function startAnimation() {
