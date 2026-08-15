@@ -2249,27 +2249,38 @@
             // a large flat panel viewed up close (the bezel, seen from the chair) turns
             // into a broad bright smear rather than a highlight, so these read as matte
             // surfaces with just enough sheen to separate metal from plastic from paint.
+            // Two colours in this room and no others: the greyscale between --bg and --fg,
+            // and the theme's own accent (pure red on modus-vivendi, pure blue on
+            // modus-operandi). mix is how far the grey sits from --bg toward --fg; tint is
+            // how much accent is stirred in. Nothing invents a hue of its own.
             const SURFACES = {
-                wall:    { mix: 0.11, shininess: 2,  spec: 0.01 },
-                floor:   { mix: 0.16, shininess: 10, spec: 0.03 },
-                ceiling: { mix: 0.06, shininess: 1,  spec: 0.01 },
-                skirt:   { mix: 0.22, shininess: 8,  spec: 0.03 },
-                trim:    { mix: 0.26, shininess: 12, spec: 0.04 },
-                door:    { mix: 0.19, shininess: 8,  spec: 0.03 },
-                bezel:   { mix: 0.31, shininess: 16, spec: 0.05 },
-                deskTop: { mix: 0.28, shininess: 14, spec: 0.05 },
-                metal:   { mix: 0.45, shininess: 30, spec: 0.12 },
-                keycap:  { mix: 0.24, shininess: 6,  spec: 0.03 },
-                rug:     { mix: 0.13, shininess: 1,  spec: 0.00 },
-                paper:   { mix: 0.56, shininess: 4,  spec: 0.02 }
+                wall:    { mix: 0.11, shininess: 2,  spec: 0.01, tint: 0.015 },
+                floor:   { mix: 0.16, shininess: 10, spec: 0.03, tint: 0.020 },
+                ceiling: { mix: 0.06, shininess: 1,  spec: 0.01, tint: 0.010 },
+                skirt:   { mix: 0.22, shininess: 8,  spec: 0.03, tint: 0.020 },
+                trim:    { mix: 0.26, shininess: 12, spec: 0.04, tint: 0.020 },
+                door:    { mix: 0.20, shininess: 20, spec: 0.05, tint: 0.045 },
+                doorTrim:{ mix: 0.29, shininess: 14, spec: 0.05, tint: 0.035 },
+                bezel:   { mix: 0.31, shininess: 16, spec: 0.05, tint: 0.015 },
+                deskTop: { mix: 0.27, shininess: 14, spec: 0.05, tint: 0.025 },
+                metal:   { mix: 0.46, shininess: 34, spec: 0.14, tint: 0.020 },
+                keycap:  { mix: 0.24, shininess: 6,  spec: 0.03, tint: 0.015 },
+                // The few things allowed to actually read as coloured.
+                rug:     { mix: 0.15, shininess: 1,  spec: 0.00, tint: 0.30 },
+                plant:   { mix: 0.34, shininess: 14, spec: 0.05, tint: 0.09 },
+                pot:     { mix: 0.24, shininess: 8,  spec: 0.03, tint: 0.07 },
+                paper:   { mix: 0.56, shininess: 4,  spec: 0.02, tint: 0.010 }
             };
 
             function roomPalette() {
                 const bg = cssColor("--bg");
                 const fg = cssColor("--fg");
-                const out = { bg: bg, accent: cssColor("--cube-color") };
+                const accent = cssColor("--cube-color");
+                const out = { bg: bg, accent: accent };
                 for (const key in SURFACES) {
-                    out[key] = bg.clone().lerp(fg, SURFACES[key].mix);
+                    const surface = SURFACES[key];
+                    const base = bg.clone().lerp(fg, surface.mix);
+                    out[key] = surface.tint ? base.lerp(accent, surface.tint) : base;
                 }
                 return out;
             }
@@ -2296,6 +2307,10 @@
                     r.panelMat.emissive.copy(p.paper);
                 }
                 if (r.screenLight) r.screenLight.color.copy(p.accent);
+                const white = new THREE.Color(0xffffff);
+                if (r.leafMat) r.leafMat.color.copy(p.plant);
+                if (r.doorGlowMat) r.doorGlowMat.color.copy(p.accent).lerp(white, 0.30);
+                if (r.stripMat) r.stripMat.color.copy(p.accent).lerp(new THREE.Color(0xffffff), 0.30);
                 r.scene.background = p.bg;
                 r.renderer.setClearColor(p.bg, 1);
             }
@@ -2376,21 +2391,99 @@
                 ceilingPanel.castShadow = false;
                 box(1.82, 0.04, 0.62, mats.trim, 0, HEIGHT - 0.015, 0.3).castShadow = false;
 
-                const doorW = 1.05;
+                // -- door -------------------------------------------------------------
+                // A real six-panel door: stiles and rails left as the slab, each panel sunk
+                // with a bevelled surround and a raised centre field, so the light actually
+                // catches the mouldings instead of drawing two flat rectangles.
+                const doorW = 1.06;
                 const doorH = 2.15;
                 const doorZ = HALF - WALL / 2;
-                box(doorW + 0.20, 0.10, 0.07, mats.trim, 0, doorH + 0.05, doorZ - 0.035);
-                box(0.10, doorH + 0.10, 0.07, mats.trim, -(doorW / 2 + 0.05), (doorH + 0.10) / 2, doorZ - 0.035);
-                box(0.10, doorH + 0.10, 0.07, mats.trim, doorW / 2 + 0.05, (doorH + 0.10) / 2, doorZ - 0.035);
-                box(doorW, doorH, 0.05, mats.door, 0, doorH / 2, doorZ - 0.06);
-                box(doorW - 0.28, doorH * 0.40, 0.014, mats.trim, 0, doorH * 0.29, doorZ - 0.092);
-                box(doorW - 0.28, doorH * 0.28, 0.014, mats.trim, 0, doorH * 0.71, doorZ - 0.092);
-                const knob = new THREE.Mesh(new THREE.SphereGeometry(0.042, 18, 14), mats.metal);
-                knob.position.set(doorW / 2 - 0.14, 1.02, doorZ - 0.10);
-                knob.castShadow = true;
-                scene.add(knob);
+                const doorFace = doorZ - 0.075;      // front face of the slab, into the room
+                const doorGroup = new THREE.Group();
+                scene.add(doorGroup);
 
-                const plastic = new THREE.MeshPhongMaterial({ color: 0xf1efe6, shininess: 14 });
+                // Architrave: two stepped depths read as moulding rather than a flat band.
+                const casingOuter = 0.13;
+                const casingInner = 0.075;
+                [[-1, 0], [1, 0]].forEach(([side]) => {
+                    const x = side * (doorW / 2 + casingOuter / 2);
+                    box(casingOuter, doorH + casingOuter, 0.055, mats.doorTrim, x, (doorH + casingOuter) / 2, doorZ - 0.030, doorGroup);
+                    box(casingInner, doorH + casingInner, 0.075, mats.doorTrim, side * (doorW / 2 + casingInner / 2), (doorH + casingInner) / 2, doorZ - 0.048, doorGroup);
+                });
+                box(doorW + casingOuter * 2, casingOuter, 0.055, mats.doorTrim, 0, doorH + casingOuter / 2, doorZ - 0.030, doorGroup);
+                box(doorW + casingInner * 2, casingInner, 0.075, mats.doorTrim, 0, doorH + casingInner / 2, doorZ - 0.048, doorGroup);
+
+                // Reveal behind the slab, so the opening reads as depth not a painted-on door.
+                box(doorW, doorH, 0.02, mats.doorTrim, 0, doorH / 2, doorZ - 0.012, doorGroup).castShadow = false;
+
+                const slab = box(doorW, doorH, 0.048, mats.door, 0, doorH / 2, doorFace, doorGroup);
+                slab.castShadow = true;
+
+                // Six panels: two short at the bottom, two tall in the middle, two at the top.
+                const stile = 0.115;                 // vertical frame width
+                const midRail = 0.10;
+                const panelW = (doorW - stile * 3) / 2;
+                const PANELS = [
+                    { y: 0.40, h: 0.62 },
+                    { y: 1.16, h: 0.72 },
+                    { y: 1.83, h: 0.42 }
+                ];
+                PANELS.forEach((row) => {
+                    [-1, 1].forEach((side) => {
+                        const x = side * (panelW / 2 + stile / 2);
+                        // sunken surround
+                        box(panelW, row.h, 0.016, mats.doorTrim, x, row.y, doorFace - 0.020, doorGroup)
+                            .castShadow = false;
+                        // raised centre field, inset by the moulding
+                        box(panelW - 0.075, row.h - 0.075, 0.020, mats.door, x, row.y, doorFace - 0.012, doorGroup)
+                            .castShadow = false;
+                    });
+                });
+                void midRail;
+
+                // Three barrel hinges down the hanging stile.
+                [0.32, doorH / 2, doorH - 0.32].forEach((y) => {
+                    const hinge = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.017, 0.017, 0.10, 12),
+                        mats.metal
+                    );
+                    hinge.position.set(-doorW / 2 - 0.004, y, doorFace + 0.004);
+                    hinge.castShadow = true;
+                    doorGroup.add(hinge);
+                });
+
+                // Lever handle on a round rose, plus an escutcheon below it.
+                const rose = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.014, 22), mats.metal);
+                rose.rotation.x = Math.PI / 2;
+                rose.position.set(doorW / 2 - 0.145, 1.045, doorFace - 0.028);
+                rose.castShadow = true;
+                doorGroup.add(rose);
+                const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.055, 14), mats.metal);
+                spindle.rotation.x = Math.PI / 2;
+                spindle.position.set(doorW / 2 - 0.145, 1.045, doorFace - 0.052);
+                doorGroup.add(spindle);
+                const lever = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.024, 0.026), mats.metal);
+                lever.position.set(doorW / 2 - 0.205, 1.045, doorFace - 0.070);
+                lever.castShadow = true;
+                doorGroup.add(lever);
+                const leverTip = new THREE.Mesh(new THREE.SphereGeometry(0.014, 12, 10), mats.metal);
+                leverTip.position.set(doorW / 2 - 0.266, 1.043, doorFace - 0.070);
+                doorGroup.add(leverTip);
+                const escutcheon = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.019, 0.010, 16), mats.metal);
+                escutcheon.rotation.x = Math.PI / 2;
+                escutcheon.position.set(doorW / 2 - 0.145, 0.905, doorFace - 0.026);
+                doorGroup.add(escutcheon);
+
+                // Threshold, and the sliver of light from whatever is on the other side.
+                box(doorW + 0.02, 0.014, 0.09, mats.doorTrim, 0, 0.007, doorZ - 0.05, doorGroup).castShadow = false;
+                const doorGlowMat = new THREE.MeshBasicMaterial({
+                    color: palette.accent.clone().lerp(new THREE.Color(0xffffff), 0.30),
+                    transparent: true,
+                    opacity: 0.85
+                });
+                const doorGlow = box(doorW - 0.06, 0.012, 0.16, doorGlowMat, 0, 0.008, doorZ - 0.115, doorGroup);
+                doorGlow.castShadow = false;
+                doorGlow.receiveShadow = false;
 
                 function meshBox(w, h, d, mat, x, y, z, parent, rotX) {
                     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -2429,12 +2522,20 @@
                 const frontZ = deskZ - 0.07;
                 const outerW = screenW + bezel * 2;
                 const outerH = screenH + bezel * 2;
-                const neckH = screenY - outerH / 2 - deskTop - 0.06;
+                // The neck has to reach the panel. It used to be sized to stop 0.03 short of
+                // the panel's bottom edge, which left the screen floating above its own
+                // stand; both ends are now derived from what they actually meet, with a
+                // little overlap at each joint so no seam can open up.
+                const panelBottom = screenY - outerH / 2;
+                const neckBottom = deskTop + 0.016;          // just inside the foot
+                const neckTop = panelBottom + 0.030;         // buried into the panel
+                const neckH = Math.max(neckTop - neckBottom, 0.06);
                 const monitorProxy = [
                     box(outerW, outerH, 0.016, mats.bezel, 0, screenY, frontZ - 0.008),
                     box(outerW * 0.90, outerH * 0.82, 0.042, mats.bezel, 0, screenY, frontZ - 0.037),
-                    box(0.20, 0.10, 0.030, mats.bezel, 0, screenY - outerH * 0.30, frontZ - 0.060),
-                    box(0.075, Math.max(neckH, 0.08), 0.042, mats.metal, 0, deskTop + 0.03 + Math.max(neckH, 0.08) / 2, frontZ - 0.055)
+                    // Hinge housing straddling the joint, not floating up inside the panel.
+                    box(0.185, 0.075, 0.036, mats.bezel, 0, panelBottom + 0.014, frontZ - 0.055),
+                    box(0.072, neckH, 0.040, mats.metal, 0, neckBottom + neckH / 2, frontZ - 0.055)
                 ];
                 const monitorFoot = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.185, 0.020, 30), mats.metal);
                 monitorFoot.position.set(0, deskTop + 0.010, frontZ - 0.055);
@@ -2527,9 +2628,11 @@
                 const brew = new THREE.Mesh(
                     new THREE.CircleGeometry(0.0345, 32),
                     new THREE.MeshPhongMaterial({
-                        color: 0x6b4a1f,
-                        shininess: 70,
-                        specular: new THREE.Color().setScalar(0.18)
+                        // Brewed tea is nearly black in a mug; it only looks amber held up
+                        // to the light. The sheen is what reads as liquid, not the colour.
+                        color: 0x1d1108,
+                        shininess: 90,
+                        specular: new THREE.Color().setScalar(0.26)
                     })
                 );
                 brew.rotation.x = -Math.PI / 2;
@@ -2566,6 +2669,87 @@
 
                 const rug = box(2.6, 0.010, 1.9, mats.rug, 0, 0.005, deskZ + 1.25);
                 rug.castShadow = false;
+                // Woven border, so the rug reads as a rug and not a painted rectangle.
+                box(2.42, 0.012, 1.72, mats.floor, 0, 0.006, deskZ + 1.25).castShadow = false;
+
+                // A strip under the desk lip: cheap to draw, and it puts colour on the floor.
+                const stripMat = new THREE.MeshBasicMaterial({
+                    color: palette.accent.clone().lerp(new THREE.Color(0xffffff), 0.30),
+                    transparent: true,
+                    opacity: 0.75
+                });
+                const deskStrip = box(deskW - 0.22, 0.010, 0.014, stripMat, 0,
+                    deskY - topT / 2 - 0.026, deskZ + deskD / 2 - 0.05);
+                deskStrip.castShadow = false;
+                deskStrip.receiveShadow = false;
+
+                // Something alive in the corner. Cones read as spikes; a real blade is a
+                // flat tapered shape with a spine, so each leaf is an outline swept from a
+                // bezier and bent along its length.
+                const plantX = -HALF + 0.74;
+                const plantZ = HALF - 1.10;
+
+                const potProfile = [
+                    [0.000, 0.000], [0.098, 0.000], [0.112, 0.018], [0.150, 0.240],
+                    [0.162, 0.272], [0.170, 0.300], [0.156, 0.302], [0.148, 0.276],
+                    [0.136, 0.244], [0.100, 0.026], [0.000, 0.024]
+                ].map((pt) => new THREE.Vector2(pt[0], pt[1]));
+                const pot = new THREE.Mesh(new THREE.LatheGeometry(potProfile, 32), mats.pot);
+                pot.position.set(plantX, 0, plantZ);
+                pot.castShadow = true;
+                pot.receiveShadow = true;
+                scene.add(pot);
+                const soil = new THREE.Mesh(new THREE.CircleGeometry(0.132, 26), mats.skirt);
+                soil.rotation.x = -Math.PI / 2;
+                soil.position.set(plantX, 0.268, plantZ);
+                scene.add(soil);
+
+                // One blade: widest a third of the way up, drawn to a point.
+                function bladeGeometry(length, width) {
+                    const shape = new THREE.Shape();
+                    shape.moveTo(0, 0);
+                    shape.bezierCurveTo(width * 0.9, length * 0.18, width, length * 0.52, 0, length);
+                    shape.bezierCurveTo(-width, length * 0.52, -width * 0.9, length * 0.18, 0, 0);
+                    const geo = new THREE.ShapeGeometry(shape, 14);
+                    // Bend it back along its own length so it arches instead of standing flat.
+                    const pos = geo.attributes.position;
+                    for (let i = 0; i < pos.count; i++) {
+                        const y = pos.getY(i);
+                        const t = Math.min(Math.max(y / length, 0), 1);
+                        pos.setZ(i, -Math.pow(t, 1.9) * length * 0.34);
+                        pos.setY(i, y * (1 - Math.pow(t, 2.4) * 0.16));
+                    }
+                    geo.computeVertexNormals();
+                    return geo;
+                }
+
+                const bladeSizes = [
+                    { l: 0.74, w: 0.062 }, { l: 0.62, w: 0.055 },
+                    { l: 0.50, w: 0.048 }, { l: 0.38, w: 0.042 }
+                ];
+                const blades = bladeSizes.map((b) => bladeGeometry(b.l, b.w));
+                const leafMat = new THREE.MeshPhongMaterial({
+                    color: palette.plant,
+                    shininess: SURFACES.plant.shininess,
+                    specular: new THREE.Color().setScalar(SURFACES.plant.spec),
+                    side: THREE.DoubleSide
+                });
+                for (let i = 0; i < 11; i++) {
+                    const geo = blades[i % blades.length];
+                    const leaf = new THREE.Mesh(geo, leafMat);
+                    const around = (i * 2.399) % (Math.PI * 2);   // golden angle, no clumping
+                    const lean = 0.16 + (i % 4) * 0.11;
+                    leaf.position.set(
+                        plantX + Math.cos(around) * 0.030,
+                        0.262,
+                        plantZ + Math.sin(around) * 0.030
+                    );
+                    leaf.rotation.set(0, -around, 0);
+                    leaf.rotateX(-lean);
+                    leaf.rotateZ((i % 2 ? 1 : -1) * 0.12);
+                    leaf.castShadow = true;
+                    scene.add(leaf);
+                }
 
                 const screenGlass = new THREE.Mesh(
                     new THREE.PlaneGeometry(1, 1),
@@ -2587,17 +2771,9 @@
                 const chairGroup = new THREE.Group();
                 chairGroup.position.set(chairX, 0, chairZ);
                 scene.add(chairGroup);
-                const chairProxy = [
-                    meshBox(0.44, 0.04, 0.42, plastic, 0, 0.44, 0, chairGroup),
-                    meshBox(0.4, 0.42, 0.035, plastic, 0, 0.67, 0.18, chairGroup, -0.14),
-                    meshBox(0.34, 0.025, 0.03, plastic, 0, 0.78, 0.2, chairGroup, -0.14),
-                    meshBox(0.34, 0.025, 0.03, plastic, 0, 0.64, 0.175, chairGroup, -0.14),
-                    meshBox(0.16, 0.03, 0.03, plastic, 0, 0.9, 0.205, chairGroup, -0.14),
-                    meshBox(0.04, 0.46, 0.04, plastic, -0.16, 0.23, 0.16, chairGroup, 0.12),
-                    meshBox(0.04, 0.46, 0.04, plastic, 0.16, 0.23, 0.16, chairGroup, 0.12),
-                    meshBox(0.04, 0.46, 0.04, plastic, -0.16, 0.23, -0.15, chairGroup, -0.1),
-                    meshBox(0.04, 0.46, 0.04, plastic, 0.16, 0.23, -0.15, chairGroup, -0.1)
-                ];
+                // The box-stack stand-in that used to sit here is gone -- chair.glb is
+                // committed and is the only chair now, so nothing placeholder ships.
+                const chairProxy = [];
 
                 scene.add(new THREE.AmbientLight(0xffffff, 0.34));
                 scene.add(new THREE.HemisphereLight(0xffffff, 0x1a1a1a, 0.46));
@@ -2688,6 +2864,9 @@
                     panelMat,
                     sun,
                     screenLight,
+                    leafMat,
+                    doorGlowMat,
+                    stripMat,
                     screenGlass,
                     screenMesh: null,
                     monitorProxy,
@@ -2699,9 +2878,16 @@
                     chairZ,
                     chairRotY,
                     screen: { x: 0, y: screenY, z: screenZ, w: screenW, h: screenH },
+                    // top = the height you stand on when you land on it. Without it these
+                    // were infinitely tall walls: solid from every side and impossible to
+                    // get on top of.
                     obstacles: [
-                        { minX: -deskW / 2 - 0.02, maxX: deskW / 2 + 0.02, minZ: deskZ - deskD / 2, maxZ: deskZ + deskD / 2 },
-                        { minX: chairX - 0.16, maxX: chairX + 0.16, minZ: chairZ - 0.18, maxZ: chairZ + 0.20 }
+                        { minX: -deskW / 2 - 0.02, maxX: deskW / 2 + 0.02,
+                          minZ: deskZ - deskD / 2, maxZ: deskZ + deskD / 2, top: deskY + topT / 2 },
+                        { minX: chairX - 0.16, maxX: chairX + 0.16,
+                          minZ: chairZ - 0.18, maxZ: chairZ + 0.20, top: 0.52 },
+                        { minX: plantX - 0.17, maxX: plantX + 0.17,
+                          minZ: plantZ - 0.17, maxZ: plantZ + 0.17, top: 0.30 }
                     ],
                     HALF,
                     resize
@@ -2985,7 +3171,8 @@
                     minX: placed.min.x + 0.05,
                     maxX: placed.max.x - 0.05,
                     minZ: placed.min.z + 0.05,
-                    maxZ: placed.max.z - 0.05
+                    maxZ: placed.max.z - 0.05,
+                    top: placed.max.y
                 };
                 clearProxy(roomState.chairProxy, roomState.chairGroup);
                 if (roomState.sun) roomState.sun.shadow.needsUpdate = true;
@@ -3131,11 +3318,28 @@
                 view.dip -= view.dip * Math.min(1, dt * 7.5);
             }
 
-            function collide(nx, nz) {
+            // What you are standing on at this spot: the tallest obstacle whose footprint
+            // contains you, or the floor. Uses the player's centre rather than the collision
+            // radius, so you cannot hover with your feet off the edge.
+            function supportHeight(x, z) {
+                let height = 0;
+                room.obstacles.forEach((box) => {
+                    if (box.top == null || box.top <= height) return;
+                    if (x > box.minX && x < box.maxX && z > box.minZ && z < box.maxZ) {
+                        height = box.top;
+                    }
+                });
+                return height;
+            }
+
+            function collide(nx, nz, feetY) {
                 const inner = room.HALF - 0.18 - RADIUS;
                 nx = Math.max(-inner, Math.min(inner, nx));
                 nz = Math.max(-inner, Math.min(inner, nz));
                 room.obstacles.forEach((box) => {
+                    // Once your feet clear the top, it stops being a wall and becomes a
+                    // surface you can walk out over.
+                    if (box.top != null && feetY >= box.top - 0.02) return;
                     if (nx > box.minX - RADIUS && nx < box.maxX + RADIUS && nz > box.minZ - RADIUS && nz < box.maxZ + RADIUS) {
                         const cx = (box.minX + box.maxX) / 2;
                         const cz = (box.minZ + box.maxZ) / 2;
@@ -3913,7 +4117,7 @@
 
                     const nx = player.x + player.vx * dt;
                     const nz = player.z + player.vz * dt;
-                    const hit = collide(nx, nz);
+                    const hit = collide(nx, nz, player.y);
                     if (hit.x !== nx) player.vx = 0;
                     if (hit.z !== nz) player.vz = 0;
                     player.x = hit.x;
@@ -3921,13 +4125,17 @@
 
                     player.y += player.vy * dt;
                     player.vy -= SV_GRAVITY * dt * 0.5;
-                    if (player.y <= 0) {
+                    const support = supportHeight(player.x, player.z);
+                    if (player.y <= support) {
                         if (!player.onGround) {
                             view.impact = Math.min(1, Math.abs(player.vy) / (JUMP_IMPULSE * 1.3));
                         }
-                        player.y = 0;
+                        player.y = support;
                         player.vy = 0;
                         player.onGround = true;
+                    } else if (player.vy <= 0) {
+                        // Walked off an edge: start falling instead of striding on air.
+                        player.onGround = false;
                     }
 
                     updateViewBob(dt);
