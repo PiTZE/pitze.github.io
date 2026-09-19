@@ -1,0 +1,1481 @@
+        :root,
+        [data-theme="modus-vivendi"] {
+            --bg: #000000;
+            --fg: #ffffff;
+            --fg-dim: #c4c4c4;
+            --fg-muted: #aaaaaa;
+            --fill: rgba(255, 255, 255, 0.08);
+            --fill-strong: rgba(255, 255, 255, 0.14);
+            --selection-bg: rgba(152, 152, 152, 0.45);
+            --selection-fg: #ffffff;
+            --glow: rgba(255, 255, 255, 0.35);
+            --cube-color: #ff0000;
+            --cube-emissive: #660000;
+            --cube-specular: #ff6666;
+            --cube-size: 32px;
+            --panel: rgba(0, 0, 0, 0.82);
+            --chrome: rgba(0, 0, 0, 0.88);
+            --border: #808080;
+            --border-soft: rgba(255, 255, 255, 0.28);
+            --border-mid: rgba(255, 255, 255, 0.44);
+            --border-faint: rgba(255, 255, 255, 0.18);
+            --term-shadow: rgba(255, 255, 255, 0.06);
+            --term-inset: rgba(255, 255, 255, 0.03);
+            --scrollbar-track: #1e1e1e;
+            --scanline: rgba(0, 0, 0, 0.18);
+            --nav-w: 232px;
+            --gap: 20px;
+        }
+
+        [data-theme="modus-operandi"] {
+            --bg: #ffffff;
+            --fg: #000000;
+            --fg-dim: #595959;
+            --fg-muted: #757575;
+            --fill: rgba(0, 0, 0, 0.06);
+            --fill-strong: rgba(0, 0, 0, 0.1);
+            --selection-bg: rgba(89, 89, 89, 0.28);
+            --selection-fg: #000000;
+            --glow: rgba(0, 0, 0, 0.22);
+            --cube-color: #0000ff;
+            --cube-emissive: #000066;
+            --cube-specular: #6666ff;
+            --cube-size: 32px;
+            --panel: rgba(255, 255, 255, 0.92);
+            --chrome: rgba(255, 255, 255, 0.94);
+            --border: #9f9f9f;
+            --border-soft: rgba(0, 0, 0, 0.18);
+            --border-mid: rgba(0, 0, 0, 0.32);
+            --border-faint: rgba(0, 0, 0, 0.12);
+            --term-shadow: rgba(0, 0, 0, 0.06);
+            --term-inset: rgba(0, 0, 0, 0.02);
+            --scrollbar-track: #f2f2f2;
+            --scanline: transparent;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100dvh;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: "IBM Plex Mono", ui-monospace, monospace;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        ::selection {
+            background: var(--selection-bg);
+            color: var(--selection-fg);
+        }
+
+        ::-moz-selection {
+            background: var(--selection-bg);
+            color: var(--selection-fg);
+        }
+
+        :focus-visible {
+            outline: 1px solid var(--fg);
+            outline-offset: 3px;
+        }
+
+        a {
+            color: var(--fg);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        .header-cube {
+            flex-shrink: 0;
+            width: var(--cube-size);
+            height: var(--cube-size);
+            pointer-events: none;
+            display: block;
+        }
+
+        .term-bar .header-cube {
+            display: block;
+        }
+
+        .mobile-bar .header-cube {
+            display: none;
+        }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent 2px,
+                var(--scanline) 3px
+            );
+            opacity: 0.22;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 12px;
+            top: -48px;
+            z-index: 20;
+            padding: 8px 12px;
+            background: var(--bg);
+            border: 1px solid var(--fg);
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 12px;
+        }
+
+        .app {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: var(--nav-w) minmax(0, 1fr);
+            grid-template-rows: auto 1fr auto;
+            height: 100dvh;
+            height: 100svh;
+            max-height: 100dvh;
+            max-height: 100svh;
+            overflow: hidden;
+        }
+
+        .mobile-bar {
+            display: none;
+            grid-column: 1 / -1;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--chrome);
+        }
+
+        .theme-toggle:hover {
+            background: var(--fill);
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        /* Sits beside GitHub in the footer, so it is built from the same parts as the
+           other buttons -- same border colour, same height, same box. */
+        .theme-toggle {
+            font: inherit;
+            color: var(--fg);
+            background: transparent;
+            border: 1px solid var(--fg);
+            padding: 8px 14px;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            line-height: 1.55;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            /* Same rem-based width as .social-link, so GitHub and the toggle are equal
+               boxes -- and VIVENDI/OPERANDI cannot change width between themes. */
+            min-width: 8.5rem;
+        }
+
+        .theme-toggle .theme-label {
+            display: inline-block;
+            text-align: center;
+        }
+
+        .mobile-path {
+            min-width: 0;
+            color: var(--fg-dim);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar {
+            grid-row: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 18px;
+            border-right: 1px solid var(--border);
+            background: var(--chrome);
+        }
+
+        .brand {
+            margin-bottom: 28px;
+        }
+
+        .brand-prompt {
+            display: block;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-hint {
+            display: block;
+            margin-top: 4px;
+            color: var(--fg-muted);
+            font-size: 0.78rem;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .menu-item {
+            display: block;
+            width: 100%;
+            font: inherit;
+            text-align: left;
+            color: var(--fg-dim);
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        .menu-item::before {
+            content: "$ ";
+            color: var(--fg-muted);
+        }
+
+        .menu-item:hover {
+            color: var(--fg);
+            background: var(--fill);
+        }
+
+        .menu-item.active {
+            color: var(--fg);
+            border-color: var(--border-mid);
+            background: var(--fill-strong);
+            font-weight: 700;
+            text-shadow: 0 0 6px var(--glow);
+        }
+
+        .terminal {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+            margin: var(--gap) var(--gap) 12px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            box-shadow: 0 0 28px var(--term-shadow), inset 0 0 40px var(--term-inset);
+        }
+
+        .term-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .term-bar .term-path {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .term-path {
+            min-width: 0;
+            color: var(--fg-dim);
+            font-size: 0.82rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .term-body {
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 22px 24px 28px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--fg) var(--scrollbar-track);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .term-body::-webkit-scrollbar { width: 8px; }
+        .term-body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        .term-body::-webkit-scrollbar-thumb { background: var(--fg); }
+
+        .content-section {
+            display: none;
+            animation: fadein 0.28s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .name {
+            margin: 0 0 4px;
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .role {
+            margin: 0 0 18px;
+            color: var(--fg-dim);
+        }
+
+        .role-sub::before {
+            content: ", ";
+        }
+
+        .about-langs .about-langs-label::after {
+            content: " ";
+        }
+
+        .about-langs .lang-wrap span + span::before {
+            content: ", ";
+        }
+
+        .lede, .copy, .muted {
+            margin: 0 0 1em;
+            overflow-wrap: anywhere;
+        }
+
+        .muted, .dates, .loc {
+            color: var(--fg-dim);
+        }
+
+        .section-kicker {
+            margin: 0 0 16px;
+            color: var(--fg-dim);
+            font-size: 0.82rem;
+        }
+
+        .skill-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px 28px;
+        }
+
+        .skill-group h3 {
+            margin: 0 0 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--fg-dim);
+            border-bottom: 1px solid var(--border-soft);
+            padding-bottom: 6px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tags li {
+            border: 1px solid var(--border-mid);
+            padding: 4px 8px;
+            font-size: 0.86rem;
+        }
+
+        .job {
+            border: 1px solid var(--border-mid);
+            margin-bottom: 10px;
+            background: transparent;
+        }
+
+        .gap-note {
+            margin: 0 0 10px;
+            padding: 10px 14px;
+            border: 1px dashed var(--border-soft);
+            color: var(--fg-dim);
+            font-size: 0.9rem;
+        }
+
+        .job summary {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2px 16px;
+            padding: 12px 14px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .job summary::-webkit-details-marker { display: none; }
+
+        .job summary::after {
+            content: "+";
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            align-self: center;
+            color: var(--fg-dim);
+        }
+
+        .job[open] summary::after { content: "−"; }
+
+        .job summary:hover {
+            background: var(--fill);
+        }
+
+        .job-role {
+            font-weight: 700;
+        }
+
+        .job-org {
+            grid-column: 1;
+            color: var(--fg-dim);
+            font-size: 0.9rem;
+            overflow-wrap: anywhere;
+        }
+
+        .job-body {
+            padding: 0 14px 14px;
+            border-top: 1px solid var(--border-faint);
+        }
+
+        .job-body ul {
+            margin: 10px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .job-body li {
+            position: relative;
+            padding-left: 1.1em;
+            margin-bottom: 0.65em;
+            overflow-wrap: anywhere;
+        }
+
+        .job-body li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--fg-muted);
+        }
+
+        .project {
+            display: block;
+            border: 1px solid var(--border-mid);
+            padding: 14px;
+            margin-bottom: 10px;
+            color: var(--fg);
+            text-decoration: none;
+        }
+
+        .project:hover {
+            background: var(--fill);
+            text-decoration: none;
+        }
+
+        .project-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .project-desc {
+            overflow-wrap: anywhere;
+        }
+
+        .project-link {
+            color: var(--fg-dim);
+            font-size: 0.78rem;
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .edu {
+            border: 1px solid var(--border-mid);
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .edu h3 {
+            margin: 0 0 6px;
+            font-size: 1rem;
+        }
+
+        .edu-meta {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .contact-row {
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .contact-row dt {
+            color: var(--fg-muted);
+        }
+
+        .contact-row dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        /* Three tracks with equal outer columns, so ? sits on the true centre of the row
+           no matter how wide the group on the right grows. */
+        .social-links {
+            grid-column: 2;
+            grid-row: 3;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            /* stretch, not center: GitHub and the toggle now sit in separate columns, so
+               the row itself has to be what equalises their heights. */
+            align-items: stretch;
+            gap: 12px;
+            padding: 0 var(--gap) max(18px, env(safe-area-inset-bottom, 0px));
+            flex-shrink: 0;
+        }
+
+        /* stretch, not center: the toggle sets a smaller type size than the links, so
+           without this it ends up a few pixels shorter than the button beside it. */
+        .social-side {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .social-side-start {
+            justify-content: flex-start;
+        }
+
+        .social-side-end {
+            justify-content: flex-end;
+        }
+
+        .social-link {
+            color: var(--fg);
+            border: 1px solid var(--fg);
+            padding: 8px 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 8.5rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .social-link:hover {
+            background: var(--fill);
+            text-decoration: none;
+            text-shadow: 0 0 8px var(--glow);
+        }
+
+        button.social-link {
+            font: inherit;
+            background: transparent;
+            cursor: pointer;
+            min-width: 3.2rem;
+        }
+
+        html[data-embed="1"] .room-enter,
+        html[data-embed="1"] #room-layer,
+        html[data-embed="1"] #room-rotate {
+            display: none !important;
+        }
+
+        body.room-active .scanlines,
+        body.room-active .skip-link {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.room-active .app {
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* overflow must stay visible here: an overflow clip on a CSS3DObject's own
+           element makes Chrome flatten the subtree and stop hit-testing into it, which
+           kills every click, hover and scroll on the projected page. .app is sized to
+           this element exactly and does its own clipping, so nothing escapes anyway. */
+        .monitor-html {
+            overflow: visible;
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        #room-layer {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            background: var(--bg);
+            /* Stops the browser claiming drags for scroll/zoom before the room sees them. */
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body.room-active #room-layer {
+            display: block;
+        }
+
+        #room-gl {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #room-css {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* The layer suppresses selection so drags become look/move, but the page projected
+           onto the monitor is still a page. */
+        #room-layer .app {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        #monitor-overlay {
+            overflow: visible;
+            background: var(--bg);
+        }
+
+        /* Staging host for the HTML-in-Canvas path. The browser skips painting for
+           display:none / visibility:hidden subtrees, and drawElementImage can only
+           capture what is actually painted -- so this is clipped to a 1px window
+           instead of hidden. */
+        .hic-stage {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            pointer-events: none;
+            contain: strict;
+        }
+
+        /* The aftermath. Deliberately not fully opaque: by this point the room has already
+           dimmed to nothing in the shader, so what shows through is the black hole itself
+           still turning behind the text. */
+        #room-void {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, 0.55);
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+            transition: opacity 1.6s ease;
+        }
+
+        body.room-void #room-void {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* The dark band the words sit in, widening out from the centre. */
+        .void-band {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 38vmin;
+            margin-top: -19vmin;
+            background: radial-gradient(ellipse at center,
+                rgba(0, 0, 0, 0.96) 0%,
+                rgba(0, 0, 0, 0.78) 42%,
+                rgba(0, 0, 0, 0) 75%);
+            transform: scaleX(0.16);
+            opacity: 0;
+            transition: transform 2.2s cubic-bezier(0.16, 0.7, 0.2, 1) 0.2s,
+                        opacity 1.4s ease 0.2s;
+        }
+
+        body.room-void .void-band {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+
+        .void-text {
+            position: relative;
+            margin: 0;
+            font-family: "Times New Roman", Times, Georgia, serif;
+            font-size: clamp(2.4rem, 11.5vmin, 8.5rem);
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            text-indent: 0.14em;
+            white-space: nowrap;
+            color: #9a1616;
+            text-shadow:
+                0 0 34px rgba(150, 14, 14, 0.5),
+                0 0 8px rgba(90, 6, 6, 0.8),
+                0 2px 3px rgba(0, 0, 0, 0.95);
+            opacity: 0;
+            transform: scale(0.82);
+            transition: opacity 2.8s ease 0.8s,
+                        transform 4.2s cubic-bezier(0.12, 0.6, 0.2, 1) 0.8s;
+        }
+
+        body.room-void .void-text {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Keep the way out reachable and legible above the void. */
+        body.room-void #room-hud {
+            z-index: 6;
+        }
+
+        body.room-void .hud-keys,
+        body.room-void .hud-prompt,
+        body.room-void .hud-cross,
+        body.room-void .touch-ui {
+            display: none;
+        }
+
+        #room-hud {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            color: var(--fg);
+            opacity: 0;
+            transition: opacity 0.45s ease;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+        }
+
+        body.room-playing #room-hud {
+            opacity: 1;
+        }
+
+        /* Quiet by default; the room is the thing worth looking at. */
+        #room-hud .room-exit {
+            position: absolute;
+            top: max(14px, env(safe-area-inset-top, 0px));
+            right: max(16px, env(safe-area-inset-right, 0px));
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            font: inherit;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            color: var(--fg-muted);
+            background: transparent;
+            border: 0;
+            padding: 6px 2px;
+            cursor: pointer;
+        }
+
+        #room-hud .room-exit:hover {
+            color: var(--fg);
+        }
+
+        /* On touch there is no Esc key to name, so this becomes a real button matching
+           the others rather than a keyboard hint. */
+        body.room-touch #room-hud .room-exit {
+            justify-content: center;
+            min-height: 44px;
+            min-width: 74px;
+            padding: 0 16px;
+            color: var(--fg);
+            background: var(--chrome);
+            border: 1px solid var(--border-mid);
+            border-radius: 999px;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            touch-action: none;
+        }
+
+        body.room-touch #room-hud .room-exit kbd {
+            display: none;
+        }
+
+        body.room-touch #room-hud .room-exit:active {
+            background: var(--fill-strong);
+            border-color: var(--fg);
+        }
+
+        .hud-keys {
+            position: absolute;
+            left: max(18px, env(safe-area-inset-left, 0px));
+            bottom: max(16px, env(safe-area-inset-bottom, 0px));
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px 16px;
+            max-width: 62vw;
+            color: var(--fg-muted);
+        }
+
+        .hud-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .hud-keys kbd {
+            font: inherit;
+            font-size: 0.64rem;
+            line-height: 1.5;
+            min-width: 1.6em;
+            padding: 1px 5px;
+            text-align: center;
+            color: var(--fg-dim);
+            background: var(--fill);
+            border: 1px solid var(--border-soft);
+            border-bottom-width: 2px;
+            border-radius: 3px;
+        }
+
+        /* Contextual action, sitting just under the crosshair where the eye already is. */
+        /* Below the monitor rather than over it -- a prompt that covers the thing you are
+           being prompted about is worse than no prompt. */
+        .hud-prompt {
+            position: absolute;
+            left: 50%;
+            top: 84%;
+            transform: translateX(-50%);
+            padding: 6px 13px;
+            border: 1px solid var(--border-mid);
+            background: var(--chrome);
+            color: var(--fg-dim);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.9s ease;
+        }
+
+        .hud-prompt.show {
+            opacity: 1;
+        }
+
+        .hud-prompt b {
+            color: var(--fg);
+            font-weight: 700;
+        }
+
+        .hud-cross {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 3px;
+            height: 3px;
+            margin: -1.5px 0 0 -1.5px;
+            border-radius: 50%;
+            background: var(--fg);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        body.room-look .hud-cross {
+            opacity: 0.5;
+        }
+
+        /* Grows and picks up the theme accent when it is resting on something clickable,
+           so aiming at a link reads the same way a cursor changing shape does. */
+        body.room-look .hud-cross.hot {
+            opacity: 1;
+            width: 9px;
+            height: 9px;
+            margin: -4.5px 0 0 -4.5px;
+            background: var(--cube-color);
+            box-shadow: 0 0 10px var(--cube-color);
+        }
+
+        /* -- touch controls ------------------------------------------------------- */
+
+        .touch-ui {
+            position: absolute;
+            inset: 0;
+            display: none;
+            pointer-events: none;
+        }
+
+        body.room-touch .touch-ui {
+            display: block;
+        }
+
+        body.room-touch .hud-keys {
+            display: none;
+        }
+
+        /* Seated at the desk the page owns the input, so movement controls would only be
+           in the way -- but STAND has to stay, or there is no way back up. */
+        body.room-touch:not(.room-look) .touch-stick,
+        body.room-touch:not(.room-look) .touch-jump {
+            display: none;
+        }
+
+        /* Floating stick: the base is placed wherever the thumb lands, which is what
+           every mobile shooter does -- a fixed pad forces the thumb to hunt for it. */
+        .touch-stick {
+            position: absolute;
+            width: 128px;
+            height: 128px;
+            margin: -64px 0 0 -64px;
+            border: 1px solid var(--border-soft);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.14s ease;
+        }
+
+        .touch-stick.active {
+            opacity: 1;
+        }
+
+        .touch-nub {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 54px;
+            height: 54px;
+            margin: -27px 0 0 -27px;
+            border: 1px solid var(--border-mid);
+            border-radius: 50%;
+            background: var(--fill-strong);
+        }
+
+        .touch-stick.sprint .touch-nub {
+            border-color: var(--fg);
+        }
+
+        .touch-buttons {
+            position: absolute;
+            right: max(20px, env(safe-area-inset-right, 0px));
+            bottom: max(20px, env(safe-area-inset-bottom, 0px));
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .touch-col {
+            display: grid;
+            gap: 10px;
+            justify-items: stretch;
+        }
+
+        .touch-btn {
+            pointer-events: auto;
+            touch-action: none;
+            font: inherit;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            color: var(--fg);
+            background: var(--chrome);
+            border: 1px solid var(--border-mid);
+            border-radius: 999px;
+            min-height: 44px;
+            min-width: 74px;
+            padding: 0 16px;
+            cursor: pointer;
+        }
+
+        .touch-btn:active,
+        .touch-btn.held {
+            background: var(--fill-strong);
+            border-color: var(--fg);
+        }
+
+        .touch-jump {
+            min-width: 86px;
+            min-height: 86px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        /* A phone held sideways is only ~390px tall, and fullscreen takes away the browser
+           chrome that was giving the layout breathing room -- fixed touch-target sizes then
+           dominate the screen. Scale the controls off the short edge instead. */
+        @media (max-height: 470px) {
+            .touch-btn {
+                min-height: 38px;
+                min-width: 60px;
+                padding: 0 12px;
+                font-size: 0.6rem;
+                letter-spacing: 0.1em;
+            }
+
+            .touch-jump {
+                min-width: 64px;
+                min-height: 64px;
+                padding: 0;
+            }
+
+            .touch-buttons {
+                right: max(12px, env(safe-area-inset-right, 0px));
+                bottom: max(12px, env(safe-area-inset-bottom, 0px));
+                gap: 9px;
+            }
+
+            .touch-col { gap: 8px; }
+
+            .touch-stick {
+                width: 100px;
+                height: 100px;
+                margin: -50px 0 0 -50px;
+            }
+
+            .touch-nub {
+                width: 42px;
+                height: 42px;
+                margin: -21px 0 0 -21px;
+            }
+
+            .hud-prompt {
+                top: 78%;
+                padding: 5px 10px;
+                font-size: 0.64rem;
+            }
+
+            body.room-touch #room-hud .room-exit {
+                min-height: 38px;
+                min-width: 60px;
+                padding: 0 12px;
+                font-size: 0.6rem;
+            }
+
+            #room-hud .room-exit {
+                top: max(10px, env(safe-area-inset-top, 0px));
+                right: max(12px, env(safe-area-inset-right, 0px));
+            }
+        }
+
+        /* -- rotate-to-landscape gate --------------------------------------------- */
+
+        #room-rotate {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--fg);
+            text-align: center;
+        }
+
+        #room-rotate[hidden] {
+            display: none;
+        }
+
+        .rotate-card {
+            max-width: 20rem;
+        }
+
+        .rotate-phone {
+            width: 68px;
+            height: 112px;
+            margin: 0 auto 26px;
+            border: 2px solid var(--fg);
+            border-radius: 10px;
+            position: relative;
+            animation: rotate-hint 2.6s ease-in-out infinite;
+        }
+
+        .rotate-phone::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 7px;
+            width: 22px;
+            height: 2px;
+            margin-left: -11px;
+            background: var(--fg-muted);
+        }
+
+        @keyframes rotate-hint {
+            0%, 30% { transform: rotate(0deg); }
+            60%, 100% { transform: rotate(-90deg); }
+        }
+
+        .rotate-title {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .rotate-copy {
+            margin: 0 0 22px;
+            color: var(--fg-muted);
+            font-size: 0.85rem;
+        }
+
+        .rotate-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #room-rotate.is-ready #room-rotate-go {
+            color: var(--bg);
+            background: var(--fg);
+            border-color: var(--fg);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        #room-rotate button {
+            font: inherit;
+            font-size: 0.8rem;
+            color: var(--fg);
+            background: transparent;
+            border: 1px solid var(--border-mid);
+            padding: 10px 18px;
+            min-height: 44px;
+            cursor: pointer;
+        }
+
+        /* Screen readers and the 3D room never see this; it exists only on paper, where
+           the live site's address is the one thing a printout cannot carry on its own. */
+        .print-url {
+            display: none;
+        }
+
+        .monitor-frame {
+            width: 1280px;
+            height: 800px;
+            border: 0;
+            background: var(--bg);
+            pointer-events: auto;
+        }
+
+        @media (max-width: 860px) {
+            :root { --gap: 12px; }
+
+            .app {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+            }
+
+            .mobile-bar {
+                display: flex;
+                min-width: 0;
+                padding-top: max(10px, env(safe-area-inset-top, 0px));
+            }
+
+            .mobile-bar .mobile-path {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .mobile-bar .header-cube { display: block; }
+
+            .term-bar .header-cube { display: none; }
+
+            .sidebar {
+                position: static;
+                grid-row: 2;
+                grid-column: 1;
+                transform: none;
+                width: auto;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 12px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .sidebar::-webkit-scrollbar { display: none; }
+
+            .brand {
+                display: none;
+            }
+
+            .sidebar ul {
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            .menu-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                min-height: 44px;
+                padding: 10px 12px;
+            }
+
+            .theme-toggle {
+                min-height: 44px;
+                padding: 6px 12px;
+                font-size: 0.72rem;
+            }
+
+            .terminal {
+                grid-column: 1;
+                grid-row: 3;
+                margin: var(--gap);
+                margin-bottom: 8px;
+            }
+
+            .social-links {
+                grid-column: 1;
+                grid-row: 4;
+                align-items: center;
+                padding: max(12px, env(safe-area-inset-bottom, 0px)) var(--gap);
+            }
+
+            .skill-grid { grid-template-columns: 1fr; }
+            .term-body { padding: 16px; }
+            .name { font-size: 1.28rem; }
+
+            .role {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .role-sub::before {
+                content: none;
+            }
+
+            .about-langs {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .about-langs .about-langs-label::after {
+                content: none;
+            }
+
+            .about-langs .lang-wrap {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .about-langs .lang-wrap span + span::before {
+                content: none;
+            }
+        }
+
+        @media (max-width: 520px) {
+            html { font-size: 14px; }
+
+            .mobile-path {
+                font-size: 0.82rem;
+            }
+
+            .job summary {
+                grid-template-columns: 1fr auto;
+                gap: 6px 10px;
+            }
+
+            .job-role { grid-column: 1; }
+
+            .job-org {
+                grid-column: 1 / -1;
+            }
+
+            .job summary::after {
+                grid-row: 1;
+                align-self: start;
+            }
+
+            .project-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .social-link {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                min-width: 8.5rem;
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .contact-row { grid-template-columns: 1fr; gap: 2px; }
+
+            /* One button per edge fits a phone row: 2 x 119 + 45 + gaps = 307 of 366. */
+            .social-links { gap: 10px; }
+        }
+
+        @media (max-width: 360px) {
+            .social-link,
+            .theme-toggle {
+                min-width: 6.5rem;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+        }
+
+        @media (max-height: 520px) and (max-width: 860px) {
+            .terminal { margin: 8px; margin-bottom: 6px; }
+            .term-body { padding: 12px; }
+            .sidebar { padding: 6px 10px; }
+            .menu-item { min-height: 40px; padding: 8px 10px; }
+            .social-links { padding-top: 8px; padding-bottom: 8px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .scanlines { display: none; }
+        }
+
+        /* Inside the room the page is laid out on a 1152px monitor, not on the device's
+           screen -- but the breakpoints above key off the viewport and cannot know that, so
+           a phone would render the panel in its mobile layout (and drop the absolutely
+           positioned theme toggle on top of the footer). These restore the desktop layout
+           for the projected page only. On desktop they simply restate the defaults. */
+        body.room-active .app {
+            --gap: 20px;
+            grid-template-columns: var(--nav-w) minmax(0, 1fr);
+            grid-template-rows: auto 1fr auto;
+        }
+
+        body.room-active .mobile-bar { display: none; }
+        body.room-active .term-bar .header-cube { display: block; }
+
+        body.room-active .sidebar {
+            grid-row: 1 / -1;
+            grid-column: 1;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            padding: 22px 18px;
+            overflow: visible;
+            border-right: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        body.room-active .brand { display: block; }
+        body.room-active .sidebar ul { flex-direction: column; gap: 4px; }
+
+        body.room-active .menu-item {
+            flex: 0 0 auto;
+            min-height: 0;
+            padding: 8px 10px;
+            white-space: normal;
+        }
+
+        body.room-active .terminal {
+            grid-column: 2;
+            grid-row: 2;
+            margin: var(--gap) var(--gap) 12px;
+        }
+
+        body.room-active .social-links {
+            grid-column: 2;
+            grid-row: 3;
+            padding: 0 var(--gap) 18px;
+        }
+
+        body.room-active .skill-grid { grid-template-columns: 1fr 1fr; }
+        body.room-active .term-body { padding: 22px 24px 28px; }
+        body.room-active .name { font-size: 1.55rem; }
+        body.room-active .role { display: block; }
+        body.room-active .role-sub::before { content: ", "; }
+        body.room-active .about-langs { display: block; }
+        body.room-active .about-langs .about-langs-label::after { content: " "; }
+        body.room-active .about-langs .lang-wrap { display: inline; }
+        body.room-active .about-langs .lang-wrap span + span::before { content: ", "; }
+
+        @media print {
+            .scanlines, .sidebar, .mobile-bar, .social-links, .term-bar, .header-cube, .theme-toggle, #room-layer, #room-rotate {
+                display: none !important;
+            }
+            html, body {
+                background: #fff;
+                color: #111;
+                overflow: visible;
+            }
+            .app {
+                display: block;
+                height: auto;
+                max-height: none;
+                overflow: visible;
+            }
+            .print-url {
+                display: block;
+                margin: 0 0 16px;
+                font-size: 0.86rem;
+                letter-spacing: 0.02em;
+            }
+            .print-url a {
+                color: #111;
+                text-decoration: none;
+            }
+            .terminal {
+                display: block;
+                margin: 0;
+                border: 0;
+                box-shadow: none;
+                background: #fff;
+                min-height: 0;
+            }
+            .term-body { overflow: visible; padding: 0; }
+            .content-section { display: block !important; animation: none; page-break-inside: avoid; margin-bottom: 24px; }
+            a, .muted, .role, .dates, .loc, .job-org, .section-kicker, .gap-note { color: #111; }
+            .job, .project, .edu, .tags li, .gap-note { border-color: #111; }
+            .job-body { display: block !important; }
+            details.job > summary { list-style: none; }
+            details.job > summary::after { content: none; }
+            details.job > .job-body {
+                display: block !important;
+                border-top: 1px solid #111;
+            }
+        }
