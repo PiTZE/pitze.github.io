@@ -17,13 +17,14 @@
             }
         })();
     </script>
-    <link href="fonts/fonts.css" rel="stylesheet">
-    <script src="vendor/three.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="preload" href="fonts/-F63fjptAgt5VM-kVkqdyU8n1i8q1w.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/-F6qfjptAgt5VM-kVkqdyU8n3pQPwlBFgg.woff2" as="font" type="font/woff2" crossorigin>
+    <link href="fonts/fonts.css?v=10" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=10">
+    <script src="vendor/three.min.js" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <div class="scanlines" aria-hidden="true"></div>
 
     <div class="app">
         <header class="mobile-bar">
@@ -57,10 +58,11 @@
                 <section id="about" class="content-section active">
                     <p class="section-kicker">$ cat about.txt</p>
                     <h1 class="name">Parsa Taghizadeh</h1>
-                    <p class="role"><span>Software Engineer</span><span class="role-sub">Backend &amp; Automation</span></p>
-                    <p class="lede">Six years building backend systems and internal automation (since Jan 2020). I work on APIs and deployment pipelines, and on tools that take repetitive operations work off other people's plates. Day to day that is mostly Python (Django, FastAPI) on Linux, with Go when a single binary is the right shape.</p>
-                    <p class="copy">Much of my recent work is under NDA: infrastructure, billing automation, internal services. I can talk through the technical approach in an interview even when I cannot name the product.</p>
-                    <p class="copy">I run NixOS and live in Emacs (Evil, Org, Magit). Beside it I run DeepSeek Harness, reached from Emacs over ACP: a new trustworthy tool in my arsenal that I build on heavily. It lets me develop faster than ever without losing precision. I like systems that are inspectable and repeatable.</p>
+                    <p class="role"><span>Backend Engineer</span><span class="role-sub">automation and deployment</span></p>
+                    <p class="lede">I'm a backend engineer. Since January 2020 I've written APIs, deploy pipelines and the small internal tools that make other people's days less repetitive. Python (Django, FastAPI) on Linux most of the time, Go when one static binary is the right answer, and C#, SQL Server, Redis and RabbitMQ or Kafka when the job lives in the .NET world.</p>
+                    <p class="copy">The part of a system I like best is the unglamorous part: the index that turned 43.8 seconds into 0.58, the CI check that stops the next slow query, the deploy you can undo with a git revert. I want a system I can inspect and run again and get the same answer.</p>
+                    <p class="copy">Right now I run a support agent for a hosting company, in Persian. It drafts replies from live account data, code checks catch its mistakes, and a person decides what gets sent. Before that, about twenty internal tools for a crypto exchange desk, which put an end to people texting prices to each other on WhatsApp. A lot of it is under NDA. I'm glad to explain how it worked in an interview.</p>
+                    <p class="copy">On my own time I'm building Amor Æternus, a game whose whole world is an operating system, down to its own Lisp. I've been circling that idea since 2021. I run NixOS, live in Emacs, and work with coding agents (Claude Code, Codex, Hermes, DeepSeek Harness) all day, reading everything they write.</p>
                     <p class="muted about-langs">
                         <span class="about-langs-label">Languages:</span>
                         <span class="lang-wrap">
@@ -78,13 +80,15 @@
                             <ul class="tags">
                                 <li>Python</li>
                                 <li>Go</li>
+                                <li>C#</li>
                                 <li>TS/JS</li>
                                 <li>SQL</li>
                                 <li>Bash</li>
+                                <li>PHP</li>
                                 <li>C</li>
+                                <li>GDScript</li>
                                 <li>Emacs Lisp</li>
                                 <li>Common Lisp</li>
-                                <li>PHP</li>
                             </ul>
                         </div>
                         <div class="skill-group">
@@ -94,10 +98,22 @@
                                 <li>FastAPI</li>
                                 <li>SQLModel</li>
                                 <li>Pydantic AI</li>
-                                <li>Textual</li>
-                                <li>Streamlit</li>
+                                <li>.NET</li>
                                 <li>Unity</li>
                                 <li>Godot</li>
+                            </ul>
+                        </div>
+                        <div class="skill-group">
+                            <h3>Data and messaging</h3>
+                            <ul class="tags">
+                                <li>SQL Server</li>
+                                <li>MySQL</li>
+                                <li>PostgreSQL</li>
+                                <li>SQLite</li>
+                                <li>DuckDB</li>
+                                <li>Redis</li>
+                                <li>RabbitMQ</li>
+                                <li>Kafka</li>
                             </ul>
                         </div>
                         <div class="skill-group">
@@ -107,26 +123,20 @@
                                 <li>Nix / NixOS</li>
                                 <li>Docker</li>
                                 <li>Nginx</li>
-                                <li>PostgreSQL</li>
-                                <li>SQLite</li>
-                                <li>DuckDB</li>
+                                <li>systemd</li>
                                 <li>Tailscale</li>
                                 <li>WHMCS</li>
-                                <li>systemd</li>
                                 <li>Git</li>
-                                <li>SBCL</li>
                             </ul>
                         </div>
                         <div class="skill-group">
                             <h3>Focus</h3>
                             <ul class="tags">
                                 <li>Backend APIs</li>
-                                <li>Ops / support automation</li>
-                                <li>AI automation</li>
-                                <li>LLM integrations</li>
+                                <li>Reliability and performance</li>
                                 <li>Reproducible deploys</li>
-                                <li>Telegram bots</li>
-                                <li>Declarative systems</li>
+                                <li>Ops and support automation</li>
+                                <li>LLM integrations</li>
                             </ul>
                         </div>
                     </div>
@@ -141,14 +151,13 @@
                             <span class="job-org">Bertina Hosting · Apr 2026 – Present · Tehran, Iran</span>
                         </summary>
                         <div class="job-body">
-                            <p class="muted">Bertina is an Iranian hosting provider (domains, shared hosting, VPS, email, SSL). I designed and built WHMCS Automation Engine: a FastAPI core, a PHP WHMCS addon, and a Markdown knowledge vault. It handles tickets in production. Draft replies go to staff for approval and never send on their own. Customer replies are in Persian.</p>
+                            <p class="muted">Bertina is an Iranian hosting provider: domains, shared hosting, VPS, email, SSL. I built its WHMCS Automation Engine, a FastAPI core with a PHP WHMCS addon and a Markdown knowledge vault. Support staff use it on real tickets, in Persian. It writes drafts that wait on the ticket page until a person copies, edits or approves one. It doesn't send replies itself.</p>
                             <ul>
-                                <li>The pipeline classifies the request, pulls the account, and drafts a Persian reply. A second model then checks every factual claim against that account. If verification fails twice, or the action is destructive, the ticket goes to a human.</li>
-                                <li>Tool access is policy-as-code, default-deny. Four tiers: read, reply, async approval, in-person for suspend / terminate / refund. Approvals bind to a hash of the exact action shown.</li>
-                                <li>All reads go through one parameterized SQL path into a 40 GB WHMCS database, with statement timeouts and least privilege grants. Writes go only through the WHMCS API. One unindexed scan took 43.8s; an online index cut it to 0.58s. CI rejects any new query that filters a growing table without an index.</li>
-                                <li>Prompt-injection handling is structural, not filter-based: vault pages are trusted, ticket text is quarantined. A prompt inside a customer message cannot become an instruction.</li>
-                                <li>The same core also runs Ask Agent, Rewrite Agent, and an approvals queue. Rewrite Agent restyles a support reply into house style and follows instructions, including inserting tutorials before support sends it. Ask Agent is an in-house chatbot that answers from prompts, live data, and the knowledge base, with tools for support work and data analysis for admins.</li>
-                                <li>Support quality went up while manual work went down: the team no longer burns out on repetitive tickets and spends its time on the real hard problems. Every ticket builds a customer profile, so big customers and real disasters get prioritized correctly and the noise gets solved.</li>
+                                <li>A ticket goes through a department check, an intent classifier and a fixed set of read-only tools, then a draft built from the customer's account and the knowledge vault. A run gets at most 12 tool calls and a cost cap, per run and per day. Greeting and signature come from code, never from the model.</li>
+                                <li>I first had a second model judge every draft. Against my own hand audit it agreed at kappa 0.07 and sent about half the drafts back, so I threw it out. Now narrow code checks do the work, each replayed on logged drafts before it was allowed to act, plus a few yes/no questions to an outside probability model with personal data masked first. A failed check gets one targeted redraft. Every path ends with a person.</li>
+                                <li>Access is a default-deny policy file, and a tool it doesn't list is refused. Four tiers: reads, low-risk writes like notes and status, changes that wait for approval, and suspend, terminate, cancel and refund only in person. An approval stores a hash of the exact arguments, so if one changes the action needs approval again.</li>
+                                <li>Reads go through one parameterized query function into the 40 GB production MySQL, with a LIMIT, a 10 second timeout and per-table read-only grants. Account changes go through the WHMCS API. One unindexed scan took 43.8 seconds; an index on the last-reply column made it 0.58, and a query-plan test in CI now fails any tool query that can't use an index unless the scan is listed as accepted.</li>
+                                <li>Ticket text and tool results are untrusted and quarantined; knowledge vault pages are the one trusted channel, so a customer's message can't become an instruction. The submitter's IP is stripped before any model sees it. The same core runs Ask Agent, which answers staff from live data under department-level access rules, and Rewrite, which restyles a reply into house style. Each ticket also updates a per-customer profile that the next draft reads.</li>
                             </ul>
                         </div>
                     </details>
@@ -163,9 +172,9 @@
                         <div class="job-body">
                             <p class="muted">Internal tools for cryptocurrency exchange operations. Exchange names under NDA.</p>
                             <ul>
-                                <li>Before my tools, staff synced prices across exchanges by hand over WhatsApp. My automation replaced that: repricing and cross exchange sync, no more texting numbers at each other.</li>
-                                <li>Built about twenty internal tools in 21 months: FastAPI (SQLModel) and Django backends, each with a Telegram bot (aiogram, Telethon) or a small web UI. The rest was back office work I cannot detail under NDA.</li>
-                                <li>Moved deploys onto Nix/NixOS so environments were reproducible across hosts. A rollback was a git revert, not a manual rebuild.</li>
+                                <li>Before my tools, staff synced prices across exchanges by hand over WhatsApp. My automation replaced that: repricing and cross-exchange sync, and no more texting numbers at each other.</li>
+                                <li>Built about twenty internal tools in 21 months: FastAPI (SQLModel) and Django backends, each with a Telegram bot (aiogram, Telethon) or a small web UI. The rest was back-office work I cannot detail under NDA.</li>
+                                <li>Moved deploys onto Nix/NixOS, so every host built the same environment. A rollback was a git revert instead of a rebuild by hand.</li>
                             </ul>
                         </div>
                     </details>
@@ -204,7 +213,12 @@
 
                     <div class="project">
                         <span class="project-title">WHMCS Automation Engine <span class="project-link">private · Bertina Hosting · sole author</span></span>
-                        <span class="project-desc">Agentic support pipeline for Bertina hosting. FastAPI core, PHP WHMCS addon, Markdown knowledge vault. Private codebase, sole author; the full story is under experience.</span>
+                        <span class="project-desc">Support agent for Bertina hosting. Drafts Persian replies from live WHMCS data and a Markdown knowledge vault, checks them with code, and leaves approval to staff. FastAPI, Postgres, a PHP WHMCS addon. Private codebase; the full story is under experience.</span>
+                    </div>
+
+                    <div class="project">
+                        <span class="project-title">Amor Æternus <span class="project-link">private · in development</span></span>
+                        <span class="project-desc">A game where the computer on the desk is the game. You walk into a line-art room, switch the computer on, and it boots ÆOS, an operating system I'm building inside Godot: its own shell, filesystem, accounts, init and scheduler, a desktop and a phone interface, and a Lisp of its own with two engines that must give the same answers. The idea goes back to late 2021; this version began in October 2026. About 80k lines of GDScript, 23k of them tests.</span>
                     </div>
 
                     <a class="project" href="https://github.com/PiTZE/die-vinci" target="_blank" rel="noopener noreferrer">
@@ -276,6 +290,9 @@
                             <dd><a href="https://github.com/PiTZE" target="_blank" rel="noopener noreferrer">github.com/PiTZE</a></dd>
                         </div>
                     </dl>
+                    <div class="room-enter-wrap">
+                        <button class="social-link room-enter" id="room-enter" type="button" aria-label="Look around">?</button>
+                    </div>
                 </section>
             </div>
         </main>
@@ -284,7 +301,6 @@
             <div class="social-side social-side-start">
                 <a class="social-link" href="https://github.com/PiTZE" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
-            <button class="social-link room-enter" id="room-enter" type="button" aria-label="Look around">?</button>
             <div class="social-side social-side-end">
                 <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to Modus Operandi light theme">
                     <span class="theme-label">OPERANDI</span>
@@ -308,9 +324,7 @@
             <div class="hud-prompt" id="room-prompt" aria-live="polite"></div>
             <div class="hud-keys" id="room-keys">
                 <span class="hud-chip"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>move</span>
-                <span class="hud-chip"><kbd>Shift</kbd>sprint</span>
-                <span class="hud-chip"><kbd>Space</kbd>jump</span>
-                <span class="hud-chip"><kbd>E</kbd>use the desk</span>
+                <span class="hud-chip"><kbd>E</kbd>sit at the desk</span>
                 <span class="hud-chip"><kbd>Esc</kbd>cursor</span>
             </div>
             <div class="touch-ui" id="touch-ui">
@@ -321,7 +335,6 @@
                     <div class="touch-col">
                         <button class="touch-btn" id="touch-desk" type="button">USE</button>
                     </div>
-                    <button class="touch-btn touch-jump" id="touch-jump" type="button">JUMP</button>
                 </div>
             </div>
         </div>
@@ -338,7 +351,7 @@
         </div>
     </div>
 
-    <script src="app.js" defer></script>
-    <script src="room.js" defer></script>
+    <script src="app.js?v=10" defer></script>
+    <script src="room.js?v=10" defer></script>
 </body>
 </html>

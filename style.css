@@ -1,56 +1,47 @@
         :root,
         [data-theme="modus-vivendi"] {
             --bg: #000000;
-            --fg: #ffffff;
-            --fg-dim: #c4c4c4;
-            --fg-muted: #aaaaaa;
+            --fg: #c4c4c4;
+            --fg-dim: #a0a0a0;
+            --fg-muted: #808080;
             --fill: rgba(255, 255, 255, 0.08);
             --fill-strong: rgba(255, 255, 255, 0.14);
-            --selection-bg: rgba(152, 152, 152, 0.45);
+            --selection-bg: #444444;
             --selection-fg: #ffffff;
-            --glow: rgba(255, 255, 255, 0.35);
+            --bar: #242424;
             --cube-color: #ff0000;
-            --cube-emissive: #660000;
-            --cube-specular: #ff6666;
             --cube-size: 32px;
-            --panel: rgba(0, 0, 0, 0.82);
-            --chrome: rgba(0, 0, 0, 0.88);
+            --panel: #000000;
+            --chrome: #000000;
             --border: #808080;
             --border-soft: rgba(255, 255, 255, 0.28);
             --border-mid: rgba(255, 255, 255, 0.44);
             --border-faint: rgba(255, 255, 255, 0.18);
-            --term-shadow: rgba(255, 255, 255, 0.06);
-            --term-inset: rgba(255, 255, 255, 0.03);
-            --scrollbar-track: #1e1e1e;
-            --scanline: rgba(0, 0, 0, 0.18);
+            /* The width of a line. The room thickens it while the page is shown smaller than its
+               own size, so its lines stay as heavy as the room's. */
+            --hair: 1px;
             --nav-w: 232px;
             --gap: 20px;
         }
 
         [data-theme="modus-operandi"] {
             --bg: #ffffff;
-            --fg: #000000;
-            --fg-dim: #595959;
+            --fg: #595959;
+            --fg-dim: #6a6a6a;
             --fg-muted: #757575;
             --fill: rgba(0, 0, 0, 0.06);
             --fill-strong: rgba(0, 0, 0, 0.1);
-            --selection-bg: rgba(89, 89, 89, 0.28);
+            --selection-bg: #cccccc;
             --selection-fg: #000000;
-            --glow: rgba(0, 0, 0, 0.22);
+            --bar: #e8e8e8;
             --cube-color: #0000ff;
-            --cube-emissive: #000066;
-            --cube-specular: #6666ff;
             --cube-size: 32px;
-            --panel: rgba(255, 255, 255, 0.92);
-            --chrome: rgba(255, 255, 255, 0.94);
+            --panel: #ffffff;
+            --chrome: #ffffff;
             --border: #9f9f9f;
             --border-soft: rgba(0, 0, 0, 0.18);
             --border-mid: rgba(0, 0, 0, 0.32);
             --border-faint: rgba(0, 0, 0, 0.12);
-            --term-shadow: rgba(0, 0, 0, 0.06);
-            --term-inset: rgba(0, 0, 0, 0.02);
-            --scrollbar-track: #f2f2f2;
-            --scanline: transparent;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -89,8 +80,8 @@
         }
 
         :focus-visible {
-            outline: 1px solid var(--fg);
-            outline-offset: 3px;
+            outline: var(--hair) solid var(--cube-color);
+            outline-offset: 0;
         }
 
         a {
@@ -99,15 +90,20 @@
             text-underline-offset: 3px;
         }
 
+        a {
+            transition: background-color 0.14s ease;
+        }
+
         a:hover {
-            text-shadow: 0 0 6px var(--glow);
+            background: var(--fill-strong);
         }
 
         .header-cube {
             flex-shrink: 0;
             width: var(--cube-size);
             height: var(--cube-size);
-            pointer-events: none;
+            pointer-events: auto;
+            cursor: pointer;
             display: block;
         }
 
@@ -119,20 +115,6 @@
             display: none;
         }
 
-        .scanlines {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0,
-                transparent 2px,
-                var(--scanline) 3px
-            );
-            opacity: 0.22;
-        }
-
         .skip-link {
             position: absolute;
             left: 12px;
@@ -140,7 +122,7 @@
             z-index: 20;
             padding: 8px 12px;
             background: var(--bg);
-            border: 1px solid var(--fg);
+            border: var(--hair) solid var(--fg);
             color: var(--fg);
             text-decoration: none;
         }
@@ -168,13 +150,12 @@
             align-items: center;
             gap: 12px;
             padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: var(--hair) solid var(--border);
             background: var(--chrome);
         }
 
         .theme-toggle:hover {
             background: var(--fill);
-            text-shadow: 0 0 6px var(--glow);
         }
 
         /* Sits beside GitHub in the footer, so it is built from the same parts as the
@@ -183,11 +164,13 @@
             font: inherit;
             color: var(--fg);
             background: transparent;
-            border: 1px solid var(--fg);
+            border: var(--hair) solid var(--border);
+            transition: background-color 0.14s ease;
             padding: 8px 14px;
             cursor: pointer;
             letter-spacing: 0.08em;
-            font-size: 0.72rem;
+            font-size: 0.85rem;
+            font-weight: 700;
             line-height: 1.55;
             display: inline-flex;
             align-items: center;
@@ -217,7 +200,7 @@
             display: flex;
             flex-direction: column;
             padding: 22px 18px;
-            border-right: 1px solid var(--border);
+            border-right: var(--hair) solid var(--border);
             background: var(--chrome);
         }
 
@@ -254,7 +237,8 @@
             text-align: left;
             color: var(--fg-dim);
             background: transparent;
-            border: 1px solid transparent;
+            border: var(--hair) solid transparent;
+            transition: background-color 0.14s ease, color 0.14s ease;
             padding: 8px 10px;
             cursor: pointer;
         }
@@ -271,10 +255,8 @@
 
         .menu-item.active {
             color: var(--fg);
-            border-color: var(--border-mid);
-            background: var(--fill-strong);
+            border-color: var(--cube-color);
             font-weight: 700;
-            text-shadow: 0 0 6px var(--glow);
         }
 
         .terminal {
@@ -285,19 +267,87 @@
             min-height: 0;
             min-width: 0;
             margin: var(--gap) var(--gap) 12px;
-            border: 1px solid var(--border);
+            border: var(--hair) solid var(--border);
             background: var(--panel);
-            box-shadow: 0 0 28px var(--term-shadow), inset 0 0 40px var(--term-inset);
         }
 
         .term-bar {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 8px 14px;
-            border-bottom: 1px solid var(--border);
+            min-height: 36px;
+            padding: 0 14px;
+            background: var(--bar);
+            border-bottom: var(--hair) solid var(--border);
             flex-shrink: 0;
             min-width: 0;
+            cursor: grab;
+            /* Dragging must not select the path text. */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .term-bar:active {
+            cursor: grabbing;
+        }
+
+        /* Zoomed: the frame fills the browser window instead of the screen. */
+        body.term-zoom {
+            overflow: hidden;
+        }
+
+        body.term-zoom .terminal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 30;
+            margin: 0;
+            border: 0;
+            /* The normal panel is translucent, which is invisible over the
+               page background but bleeds the sidebar through as an overlay. */
+            background: var(--bg);
+        }
+
+        body.term-zoom .term-body {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+        }
+
+        @media (min-width: 861px) {
+            /* On desktop the sidebar stays usable: zoom fills the terminal's
+               own grid frame edge to edge, and the footer floats above it so
+               GitHub and the toggle stay clickable. In-flow grid placement,
+               so no absolute-positioning math can drift. */
+            body.term-zoom .terminal {
+                position: static;
+                grid-column: 2;
+                grid-row: 1 / -1;
+                justify-self: stretch;
+                align-self: stretch;
+                width: auto;
+                height: auto;
+                margin: 0;
+                border: 0;
+                background: var(--bg);
+            }
+
+            body.term-zoom .term-body {
+                padding-bottom: 84px;
+            }
+
+            body.term-zoom .social-links {
+                position: fixed;
+                left: var(--nav-w);
+                right: 0;
+                bottom: 0;
+                z-index: 31;
+                background: var(--bg);
+                padding-top: 12px;
+            }
         }
 
         .term-bar .term-path {
@@ -322,13 +372,14 @@
             overflow-x: hidden;
             padding: 22px 24px 28px;
             scrollbar-width: thin;
-            scrollbar-color: var(--fg) var(--scrollbar-track);
+            scrollbar-color: var(--fg) transparent;
             -webkit-overflow-scrolling: touch;
         }
 
+        /* The scrollbar's thumb is a thin pill in the text's colour, the one rounded thing. */
         .term-body::-webkit-scrollbar { width: 8px; }
-        .term-body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-        .term-body::-webkit-scrollbar-thumb { background: var(--fg); }
+        .term-body::-webkit-scrollbar-track { background: transparent; }
+        .term-body::-webkit-scrollbar-thumb { background: var(--fg); border-radius: 999px; border: 2px solid var(--bg); }
 
         .content-section {
             display: none;
@@ -340,8 +391,27 @@
         }
 
         @keyframes fadein {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: none; }
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Blinking block cursor after each typed command. steps(1) keeps the
+           edge hard the way a real terminal does. Reduced-motion users fall
+           back to a solid block via the global animation kill below. */
+        .section-kicker::after {
+            content: "";
+            display: inline-block;
+            width: 1ch;
+            height: 1.2em;
+            margin-left: 0.5ch;
+            vertical-align: text-bottom;
+            background: var(--cube-color);
+            animation: cursorblink 1.2s steps(1) infinite;
+        }
+
+        @keyframes cursorblink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
         }
 
         .name {
@@ -371,6 +441,21 @@
         .lede, .copy, .muted {
             margin: 0 0 1em;
             overflow-wrap: anywhere;
+            max-width: 68ch;
+        }
+
+        /* About fills the whole 80-column frame edge to edge, but in zoom
+           the frame is wider than 80 columns, so it caps there instead. */
+        body:not(.term-zoom) #about .lede,
+        body:not(.term-zoom) #about .copy,
+        body:not(.term-zoom) #about .muted {
+            max-width: none;
+        }
+
+        body.term-zoom #about .lede,
+        body.term-zoom #about .copy,
+        body.term-zoom #about .muted {
+            max-width: 80ch;
         }
 
         .muted, .dates, .loc {
@@ -389,6 +474,11 @@
             gap: 22px 28px;
         }
 
+        /* An odd group out takes the whole row. */
+        .skill-group:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+        }
+
         .skill-group h3 {
             margin: 0 0 10px;
             font-size: 0.82rem;
@@ -396,7 +486,7 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: var(--fg-dim);
-            border-bottom: 1px solid var(--border-soft);
+            border-bottom: var(--hair) solid var(--border-soft);
             padding-bottom: 6px;
         }
 
@@ -410,13 +500,13 @@
         }
 
         .tags li {
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             padding: 4px 8px;
             font-size: 0.86rem;
         }
 
         .job {
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             margin-bottom: 10px;
             background: transparent;
         }
@@ -424,9 +514,10 @@
         .gap-note {
             margin: 0 0 10px;
             padding: 10px 14px;
-            border: 1px dashed var(--border-soft);
+            border: var(--hair) dashed var(--border-soft);
             color: var(--fg-dim);
             font-size: 0.9rem;
+            max-width: 68ch;
         }
 
         .job summary {
@@ -467,7 +558,7 @@
 
         .job-body {
             padding: 0 14px 14px;
-            border-top: 1px solid var(--border-faint);
+            border-top: var(--hair) solid var(--border-faint);
         }
 
         .job-body ul {
@@ -481,6 +572,7 @@
             padding-left: 1.1em;
             margin-bottom: 0.65em;
             overflow-wrap: anywhere;
+            max-width: 68ch;
         }
 
         .job-body li::before {
@@ -492,7 +584,7 @@
 
         .project {
             display: block;
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             padding: 14px;
             margin-bottom: 10px;
             color: var(--fg);
@@ -515,6 +607,7 @@
 
         .project-desc {
             overflow-wrap: anywhere;
+            max-width: 68ch;
         }
 
         .project-link {
@@ -525,7 +618,7 @@
         }
 
         .edu {
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             padding: 14px;
             margin-bottom: 10px;
         }
@@ -558,13 +651,12 @@
             overflow-wrap: anywhere;
         }
 
-        /* Three tracks with equal outer columns, so ? sits on the true centre of the row
-           no matter how wide the group on the right grows. */
+        /* Two tracks: links left, theme toggle right. */
         .social-links {
             grid-column: 2;
             grid-row: 3;
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 1fr 1fr;
             /* stretch, not center: GitHub and the toggle now sit in separate columns, so
                the row itself has to be what equalises their heights. */
             align-items: stretch;
@@ -590,9 +682,24 @@
             justify-content: flex-end;
         }
 
+        /* The way into the 3D room, sitting in the middle of contact. */
+        #contact.active {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+        }
+
+        .room-enter-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .social-link {
             color: var(--fg);
-            border: 1px solid var(--fg);
+            border: var(--hair) solid var(--border);
+            transition: background-color 0.14s ease;
             padding: 8px 14px;
             text-decoration: none;
             display: inline-flex;
@@ -601,12 +708,16 @@
             min-width: 8.5rem;
             box-sizing: border-box;
             text-align: center;
+            /* Same type as the theme toggle beside it. */
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            line-height: 1.55;
         }
 
         .social-link:hover {
             background: var(--fill);
             text-decoration: none;
-            text-shadow: 0 0 8px var(--glow);
         }
 
         button.social-link {
@@ -622,7 +733,6 @@
             display: none !important;
         }
 
-        body.room-active .scanlines,
         body.room-active .skip-link {
             visibility: hidden;
             pointer-events: none;
@@ -775,6 +885,9 @@
             z-index: 6;
         }
 
+        body.room-collapse .hud-keys,
+        body.room-collapse .hud-prompt,
+        body.room-collapse .hud-cross,
         body.room-void .hud-keys,
         body.room-void .hud-prompt,
         body.room-void .hud-cross,
@@ -830,8 +943,7 @@
             padding: 0 16px;
             color: var(--fg);
             background: var(--chrome);
-            border: 1px solid var(--border-mid);
-            border-radius: 999px;
+            border: var(--hair) solid var(--border-mid);
             font-size: 0.68rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
@@ -874,9 +986,8 @@
             text-align: center;
             color: var(--fg-dim);
             background: var(--fill);
-            border: 1px solid var(--border-soft);
+            border: var(--hair) solid var(--border-soft);
             border-bottom-width: 2px;
-            border-radius: 3px;
         }
 
         /* Contextual action, sitting just under the crosshair where the eye already is. */
@@ -888,7 +999,7 @@
             top: 84%;
             transform: translateX(-50%);
             padding: 6px 13px;
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             background: var(--chrome);
             color: var(--fg-dim);
             white-space: nowrap;
@@ -930,7 +1041,6 @@
             height: 9px;
             margin: -4.5px 0 0 -4.5px;
             background: var(--cube-color);
-            box-shadow: 0 0 10px var(--cube-color);
         }
 
         /* -- touch controls ------------------------------------------------------- */
@@ -946,14 +1056,26 @@
             display: block;
         }
 
+        /* Leaned in, the screen is the whole view and the legend would sit on the page. */
+        body.room-close .hud-keys {
+            display: none;
+        }
+
+        /* Seated the screen is the view: the hint moves to the corner, out of the page's way. */
+        body.room-seat .hud-prompt {
+            top: auto;
+            left: max(18px, env(safe-area-inset-left, 0px));
+            bottom: 56px;
+            transform: none;
+        }
+
         body.room-touch .hud-keys {
             display: none;
         }
 
         /* Seated at the desk the page owns the input, so movement controls would only be
            in the way -- but STAND has to stay, or there is no way back up. */
-        body.room-touch:not(.room-look) .touch-stick,
-        body.room-touch:not(.room-look) .touch-jump {
+        body.room-touch:not(.room-look) .touch-stick {
             display: none;
         }
 
@@ -964,7 +1086,7 @@
             width: 128px;
             height: 128px;
             margin: -64px 0 0 -64px;
-            border: 1px solid var(--border-soft);
+            border: var(--hair) solid var(--border-soft);
             border-radius: 50%;
             opacity: 0;
             transition: opacity 0.14s ease;
@@ -981,13 +1103,9 @@
             width: 54px;
             height: 54px;
             margin: -27px 0 0 -27px;
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             border-radius: 50%;
             background: var(--fill-strong);
-        }
-
-        .touch-stick.sprint .touch-nub {
-            border-color: var(--fg);
         }
 
         .touch-buttons {
@@ -1013,25 +1131,16 @@
             letter-spacing: 0.12em;
             color: var(--fg);
             background: var(--chrome);
-            border: 1px solid var(--border-mid);
-            border-radius: 999px;
+            border: var(--hair) solid var(--border-mid);
             min-height: 44px;
             min-width: 74px;
             padding: 0 16px;
             cursor: pointer;
         }
 
-        .touch-btn:active,
-        .touch-btn.held {
+        .touch-btn:active {
             background: var(--fill-strong);
             border-color: var(--fg);
-        }
-
-        .touch-jump {
-            min-width: 86px;
-            min-height: 86px;
-            padding: 0;
-            border-radius: 50%;
         }
 
         /* A phone held sideways is only ~390px tall, and fullscreen takes away the browser
@@ -1044,12 +1153,6 @@
                 padding: 0 12px;
                 font-size: 0.6rem;
                 letter-spacing: 0.1em;
-            }
-
-            .touch-jump {
-                min-width: 64px;
-                min-height: 64px;
-                padding: 0;
             }
 
             .touch-buttons {
@@ -1172,7 +1275,7 @@
             font-size: 0.8rem;
             color: var(--fg);
             background: transparent;
-            border: 1px solid var(--border-mid);
+            border: var(--hair) solid var(--border-mid);
             padding: 10px 18px;
             min-height: 44px;
             cursor: pointer;
@@ -1228,7 +1331,7 @@
                 overflow-x: auto;
                 overflow-y: hidden;
                 border-right: none;
-                border-bottom: 1px solid var(--border);
+                border-bottom: var(--hair) solid var(--border);
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
             }
@@ -1254,7 +1357,8 @@
             .theme-toggle {
                 min-height: 44px;
                 padding: 6px 12px;
-                font-size: 0.72rem;
+                font-size: 0.85rem;
+                font-weight: 700;
             }
 
             .terminal {
@@ -1338,6 +1442,7 @@
             .social-link {
                 padding: 6px 12px;
                 font-size: 0.85rem;
+                font-weight: 700;
                 min-width: 8.5rem;
                 min-height: 44px;
                 display: inline-flex;
@@ -1368,12 +1473,44 @@
             .social-links { padding-top: 8px; padding-bottom: 8px; }
         }
 
+        @media (min-width: 861px) {
+            /* Classic 80x24 terminal, centered: 80 columns of content plus
+               the body padding, 24 lines tall, always scrollable. */
+            .terminal {
+                justify-self: center;
+                align-self: center;
+                width: min(86ch, 100%);
+                /* Whatever room the grid row leaves: the frame shrinks before it overlaps the
+                   footer, whatever size the page is laid out at (a monitor is not the window). */
+                max-height: calc(100% - var(--gap) - 12px);
+            }
+            .term-body {
+                flex: 0 1 37.2em;
+                min-height: 0;
+                overflow-y: auto;
+                position: relative;
+            }
+            /* Dead center of the frame. The floor keeps it clear of the
+               contact rows on short windows; phones keep the flow version. */
+            #contact.active {
+                display: block;
+                min-height: 0;
+            }
+            #contact .room-enter-wrap {
+                position: absolute;
+                left: 0;
+                right: 0;
+                /* Body middle sits half a title bar below the frame middle. */
+                top: max(calc(50% - 1.6em), 250px);
+                transform: translateY(-50%);
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation: none !important;
                 transition: none !important;
             }
-            .scanlines { display: none; }
         }
 
         /* Inside the room the page is laid out on a 1152px monitor, not on the device's
@@ -1398,7 +1535,7 @@
             gap: 0;
             padding: 22px 18px;
             overflow: visible;
-            border-right: 1px solid var(--border);
+            border-right: var(--hair) solid var(--border);
             border-bottom: none;
         }
 
@@ -1416,6 +1553,12 @@
             grid-column: 2;
             grid-row: 2;
             margin: var(--gap) var(--gap) 12px;
+            /* The monitor mirrors the 2D page exactly: same 80-column
+               frame, stated outright so no cascade can shrink it. */
+            width: min(86ch, 100%);
+            justify-self: center;
+            align-self: center;
+            transform: none;
         }
 
         body.room-active .social-links {
@@ -1425,7 +1568,7 @@
         }
 
         body.room-active .skill-grid { grid-template-columns: 1fr 1fr; }
-        body.room-active .term-body { padding: 22px 24px 28px; }
+        body.room-active .term-body { padding: 22px 24px 28px; flex: 0 1 37.2em; min-height: 0; overflow-y: auto; }
         body.room-active .name { font-size: 1.55rem; }
         body.room-active .role { display: block; }
         body.room-active .role-sub::before { content: ", "; }
@@ -1435,7 +1578,7 @@
         body.room-active .about-langs .lang-wrap span + span::before { content: ", "; }
 
         @media print {
-            .scanlines, .sidebar, .mobile-bar, .social-links, .term-bar, .header-cube, .theme-toggle, #room-layer, #room-rotate {
+            .sidebar, .mobile-bar, .social-links, .term-bar, .header-cube, .theme-toggle, #room-layer, #room-rotate, .room-enter-wrap, .section-kicker::after {
                 display: none !important;
             }
             html, body {
@@ -1461,13 +1604,14 @@
             }
             .terminal {
                 display: block;
+                width: auto;
                 margin: 0;
                 border: 0;
                 box-shadow: none;
                 background: #fff;
                 min-height: 0;
             }
-            .term-body { overflow: visible; padding: 0; }
+            .term-body { overflow: visible; padding: 0; height: auto; }
             .content-section { display: block !important; animation: none; page-break-inside: avoid; margin-bottom: 24px; }
             a, .muted, .role, .dates, .loc, .job-org, .section-kicker, .gap-note { color: #111; }
             .job, .project, .edu, .tags li, .gap-note { border-color: #111; }
