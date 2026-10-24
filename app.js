@@ -1,10 +1,4 @@
         (function () {
-            // Word-front emphasis from text-vide (MIT, vendor/text-vide.js): the first
-            // letters of each word go bold. Prose only; dates, tags and titles stay as they are.
-            document.querySelectorAll("#about .lede, #about .copy, .job-body p, .job-body li, .project-desc").forEach((el) => {
-                el.innerHTML = textVide.textVide(el.innerHTML, { fixationPoint: 3, sep: ['<b class="br">', "</b>"] });
-            });
-
             const THEMES = {
                 "modus-vivendi": {
                     label: "OPERANDI",

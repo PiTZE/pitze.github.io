@@ -462,12 +462,9 @@
             color: var(--fg-dim);
         }
 
-        /* Front of each word, set by the bionic-reading pass in app.js. */
-        .br {
+        /* Key phrases: the few facts in an entry worth catching at a glance. */
+        .term-body strong {
             font-weight: 700;
-        }
-
-        .muted .br {
             color: var(--fg);
         }
 

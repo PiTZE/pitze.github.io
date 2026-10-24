@@ -19,8 +19,8 @@
     </script>
     <link rel="preload" href="fonts/-F63fjptAgt5VM-kVkqdyU8n1i8q1w.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/-F6qfjptAgt5VM-kVkqdyU8n3pQPwlBFgg.woff2" as="font" type="font/woff2" crossorigin>
-    <link href="fonts/fonts.css?v=12" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=12">
+    <link href="fonts/fonts.css?v=13" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=13">
     <script src="vendor/three.min.js" defer></script>
 </head>
 <body>
@@ -59,9 +59,9 @@
                     <p class="section-kicker">$ cat about.txt</p>
                     <h1 class="name">Parsa Taghizadeh</h1>
                     <p class="role"><span>Computer Scientist</span><span class="role-sub">Backend &amp;&amp; Automation Engineer</span></p>
-                    <p class="lede">I'm a cognitive scientist at heart who turned programmer. Video games got me started, and programming is still the best way I know to be a god: you write the rules and the world runs.</p>
-                    <p class="copy">I hate doing anything twice, so I automate the everyday chores and make games with the time I save. Nobody fully knows what's under the hood, so I design black boxes with clear inputs and outputs and build bigger ones from them.</p>
-                    <p class="copy">Coding agent harnesses are my calculator. A mathematician still has to know the math, and I know what I want built, so I steer and read everything that comes back. I'm the architect, not a proxy.</p>
+                    <p class="lede">I'm a <strong>cognitive scientist at heart</strong> who turned programmer. Video games got me started, and programming is still the best way I know to be a god: you write the rules and the world runs.</p>
+                    <p class="copy"><strong>I hate doing anything twice</strong>, so I automate the everyday chores and make games with the time I save. Nobody fully knows what's under the hood, so I design black boxes with clear inputs and outputs and build bigger ones from them.</p>
+                    <p class="copy">Coding agent harnesses are my calculator. A mathematician still has to know the math, and I know what I want built, so I steer and read everything that comes back. I'm <strong>the architect, not a proxy</strong>.</p>
                     <p class="copy">I run NixOS. In three years it hasn't made me change OS, which is the whole point of an OS. I live in Emacs with Vim keys, hands on the keyboard, so they keep up with my head. Off the screen I work out, read, make music and generally live.</p>
                     <p class="muted about-langs">
                         <span class="about-langs-label">Languages:</span>
@@ -151,12 +151,12 @@
                             <span class="job-org">Bertina Hosting · Apr 2026 – Present · Tehran, Iran</span>
                         </summary>
                         <div class="job-body">
-                            <p class="muted">Bertina is a hosting provider: domains, shared hosting, VPS, email, SSL. Its support team answers a steady stream of repetitive tickets in Persian. I designed and built the WHMCS Automation Engine, a FastAPI core, a PHP WHMCS addon and a Markdown knowledge vault, so staff review a draft instead of typing every answer. It runs on real tickets and only drafts. A person sends.</p>
+                            <p class="muted">Bertina is a hosting provider: domains, shared hosting, VPS, email, SSL.<br>Its support team answers a steady stream of repetitive tickets in Persian.<br>I designed and built the WHMCS Automation Engine, a FastAPI core, a PHP WHMCS addon and a Markdown knowledge vault, so staff review a draft instead of typing every answer.<br>It runs on real tickets and <strong>only drafts</strong>.<br>A person sends.</p>
                             <ul>
-                                <li>I first let a second model grade every draft. Against my own hand audit it agreed at kappa 0.07 and sent half the drafts back for another go, which is a coin flip with a bill. I replaced it with narrow code checks, each replayed on logged drafts before it was allowed to act, and one targeted redraft at most. Every path ends with a person.</li>
-                                <li>The agent may touch what a default-deny policy file lists and nothing else. Reads are free, notes and status changes run directly, nameserver and password changes wait for approval, and suspend, terminate, cancel and refund only happen in person. An approval holds a hash of the exact arguments, so nobody can approve one thing and run another.</li>
-                                <li>The database is 40 GB and I read it through one parameterized query function, with a LIMIT, a 10 second timeout and read-only grants per table. One unindexed scan took 43.8 seconds. An index made it 0.58, and a query-plan test in CI now rejects any tool query that can't use one, unless I've listed the scan on purpose.</li>
-                                <li>Customer messages are text, never instructions, and the knowledge vault is the one channel the model trusts. Greeting and signature come from code. The customer's IP and any private key pasted into a ticket never reach a model. The same core also runs Ask Agent for staff questions and Rewrite for house style.</li>
+                                <li>I first let a second model grade every draft.<br>Against my own hand audit it agreed at <strong>kappa 0.07</strong> and sent half the drafts back for another go, which is a coin flip with a bill.<br>I replaced it with narrow code checks, each replayed on logged drafts before it was allowed to act, and one targeted redraft at most.<br><strong>Every path ends with a person.</strong></li>
+                                <li>The agent may touch what a <strong>default-deny policy file</strong> lists and nothing else.<br>Reads are free, notes and status changes run directly, nameserver and password changes wait for approval, and suspend, terminate, cancel and refund only happen in person.<br>An approval holds a <strong>hash of the exact arguments</strong>, so nobody can approve one thing and run another.</li>
+                                <li>The database is 40 GB and I read it through one parameterized query function, with a LIMIT, a 10 second timeout and read-only grants per table.<br>One unindexed scan took <strong>43.8 seconds</strong>.<br>An index made it <strong>0.58</strong>, and a <strong>query-plan test in CI</strong> now rejects any tool query that can't use one, unless I've listed the scan on purpose.</li>
+                                <li><strong>Customer messages are text, never instructions</strong>, and the knowledge vault is the one channel the model trusts.<br>Greeting and signature come from code.<br>The customer's IP and any private key pasted into a ticket never reach a model.<br>The same core also runs Ask Agent for staff questions and Rewrite for house style.</li>
                             </ul>
                         </div>
                     </details>
@@ -169,11 +169,11 @@
                             <span class="job-org">Mega FinTech · May 2024 – Feb 2026 · Dubai, UAE (remote)</span>
                         </summary>
                         <div class="job-body">
-                            <p class="muted">Internal tools for cryptocurrency exchange operations. The exchange names are under NDA, which makes this entry shorter than the work.</p>
+                            <p class="muted">Internal tools for cryptocurrency exchange operations.<br>The exchange names are under NDA, which makes this entry shorter than the work.</p>
                             <ul>
-                                <li>The desk used to sync prices across exchanges by texting each other numbers on WhatsApp. I automated repricing and the cross-exchange sync, and the texting stopped.</li>
-                                <li>About twenty internal tools in 21 months, usually FastAPI with SQLModel or Django behind a Telegram bot, aiogram or Telethon, or a small web UI. The rest was back-office work I can only describe over a call.</li>
-                                <li>I moved deploys to Nix and NixOS, so every host built the same environment. Rolling back became a git revert instead of a rebuild by hand.</li>
+                                <li>The desk used to sync prices across exchanges by texting each other numbers on WhatsApp.<br>I automated repricing and the cross-exchange sync, and <strong>the texting stopped</strong>.</li>
+                                <li><strong>About twenty internal tools in 21 months</strong>, usually FastAPI with SQLModel or Django behind a Telegram bot, aiogram or Telethon, or a small web UI.<br>The rest was back-office work I can only describe over a call.</li>
+                                <li>I moved deploys to Nix and NixOS, so every host built the same environment.<br><strong>Rolling back became a git revert</strong> instead of a rebuild by hand.</li>
                             </ul>
                         </div>
                     </details>
@@ -185,8 +185,8 @@
                         </summary>
                         <div class="job-body">
                             <ul>
-                                <li>I built Jaan Jibi / Can Cepper, an online multiplayer word-quiz game, in Unity, in Persian and Turkish.</li>
-                                <li>When the backend engineer left, I took over the live Django game backend: real-time multiplayer, tournaments and localization on both client and server. Inheriting a system you didn't design is humbling, and I recommend it once.</li>
+                                <li>I built Jaan Jibi / Can Cepper, an <strong>online multiplayer word-quiz game</strong>, in Unity, in Persian and Turkish.</li>
+                                <li>When the backend engineer left, I <strong>took over the live Django game backend</strong>: real-time multiplayer, tournaments and localization on both client and server.<br>Inheriting a system you didn't design is humbling, and I recommend it once.</li>
                                 <li>I mentored junior developers on the client and the backend.</li>
                             </ul>
                         </div>
@@ -198,10 +198,10 @@
                             <span class="job-org">Alizadeh Cloud Solutions · Jan 2020 – Dec 2021 · Tehran, Iran</span>
                         </summary>
                         <div class="job-body">
-                            <p class="muted">My first paid programming job. The products are under NDA, so this is the part I can say.</p>
+                            <p class="muted">My first paid programming job.<br>The products are under NDA, so this is the part I can say.</p>
                             <ul>
-                                <li>I designed, built and ran a Django backend for internal systems, with a production REST API in Django REST Framework on Linux.</li>
-                                <li>Deploys were git pulls, from before I had Docker or Nix. I've been making up for it since.</li>
+                                <li>I <strong>designed, built and ran a Django backend</strong> for internal systems, with a production REST API in Django REST Framework on Linux.</li>
+                                <li><strong>Deploys were git pulls</strong>, from before I had Docker or Nix.<br>I've been making up for it since.</li>
                             </ul>
                         </div>
                     </details>
@@ -212,37 +212,37 @@
 
                     <div class="project">
                         <span class="project-title">WHMCS Automation Engine <span class="project-link">private · Bertina Hosting · sole author</span></span>
-                        <span class="project-desc">Support agent for Bertina hosting, my design from the first idea. It reads a ticket, pulls the account and writes a Persian draft that a person can send, fix or bin. It sends nothing itself. FastAPI, Postgres, a PHP WHMCS addon and a Markdown knowledge vault. Private codebase, the details are under experience.</span>
+                        <span class="project-desc">Support agent for Bertina hosting, my design from the first idea.<br>It reads a ticket, pulls the account and writes a Persian draft that a person can send, fix or bin.<br><strong>It sends nothing itself.</strong><br>FastAPI, Postgres, a PHP WHMCS addon and a Markdown knowledge vault.<br>Private codebase, the details are under experience.</span>
                     </div>
 
                     <div class="project">
                         <span class="project-title">Amor Æternus <span class="project-link">private · in development</span></span>
-                        <span class="project-desc">An operating system you can walk into, and my love letter to video games. I'm building it as a platform of worlds. A world holds rooms, a room holds devices, and every device is a virtual computer running ÆOS, with its own shell, filesystem, init and a Lisp that runs on a bytecode machine or compiles to GDScript. Games and apps are packages on an SDK, and I plan to make a lot of them. Next, devices will network inside a world, with addresses, names and servers, and later worlds are meant to link to each other. The idea goes back to late 2021, and it's the project of my life.</span>
+                        <span class="project-desc"><strong>An operating system you can walk into</strong>, and my love letter to video games.<br>I'm building it as a <strong>platform of worlds</strong>.<br>A world holds rooms, a room holds devices, and every device is a virtual computer running ÆOS, with its own shell, filesystem, init and a Lisp that runs on a bytecode machine or compiles to GDScript.<br>Games and apps are packages on an SDK, and I plan to make a lot of them.<br>Next, devices will network inside a world, with addresses, names and servers, and later worlds are meant to link to each other.<br>The idea goes back to late 2021, and it's <strong>the project of my life</strong>.</span>
                     </div>
 
                     <a class="project" href="https://github.com/PiTZE/die-vinci" target="_blank" rel="noopener noreferrer">
                         <span class="project-title">die Vinci <span class="project-link">github.com/PiTZE/die-vinci</span></span>
-                        <span class="project-desc">A love letter to Antimatter Dimensions, and a gift. It's an incremental game about the solids Leonardo drew for Pacioli: nine dice in a chain, the tetrahedron makes ink, ink buys the next die, and every ten of a solid doubles it. It plays out the hours you were away and works offline as a PWA. A simulator plays a first run and prints where the time went, which is how I balance it. TypeScript, tested in headless Chrome. Live at leo.generis.ir.</span>
+                        <span class="project-desc"><strong>A love letter to Antimatter Dimensions</strong>, <strong>and a gift</strong>.<br>It's an incremental game about the solids Leonardo drew for Pacioli: nine dice in a chain, the tetrahedron makes ink, ink buys the next die, and every ten of a solid doubles it.<br>It plays out the hours you were away and works offline as a PWA.<br>A simulator plays a first run and prints where the time went, which is how I balance it.<br>TypeScript, tested in headless Chrome.<br>Live at leo.generis.ir.</span>
                     </a>
 
                     <a class="project" href="https://github.com/PiTZE/wisp-harness" target="_blank" rel="noopener noreferrer">
                         <span class="project-title">WISP <span class="project-link">github.com/PiTZE/wisp-harness</span></span>
-                        <span class="project-desc">My agent harness, in Common Lisp, and the Emacs idea taken seriously: one image that stays up for weeks while I reshape it live instead of rebuilding it. The loop calls the model, runs its tools and stops at ten steps. Five tools, a browser UI with no build step, a socket REPL, and a session that reaches outside its directory asks permission instead of dying.</span>
+                        <span class="project-desc">My agent harness, in Common Lisp, and the Emacs idea taken seriously: one image that <strong>stays up for weeks</strong> while I reshape it live instead of rebuilding it.<br>The loop calls the model, runs its tools and stops at ten steps.<br>Five tools, a browser UI with no build step, a socket REPL, and a session that reaches outside its directory <strong>asks permission instead of dying</strong>.</span>
                     </a>
 
                     <a class="project" href="https://github.com/PiTZE/Argus" target="_blank" rel="noopener noreferrer">
                         <span class="project-title">Argus <span class="project-link">github.com/PiTZE/Argus</span></span>
-                        <span class="project-desc">For CSV files too big to open politely. Drop them in a folder, convert them once, then search and query them from the browser. Ingest converts types and stores GZIP, a picker chooses columns, and it installs as a systemd service.</span>
+                        <span class="project-desc">For CSV files <strong>too big to open politely</strong>.<br>Drop them in a folder, convert them once, then search and query them from the browser.<br>Ingest converts types and stores GZIP, a picker chooses columns, and it installs as a systemd service.</span>
                     </a>
 
                     <a class="project" href="https://github.com/PiTZE/PorTTY" target="_blank" rel="noopener noreferrer">
                         <span class="project-title">PorTTY <span class="project-link">github.com/PiTZE/PorTTY</span></span>
-                        <span class="project-desc">A real terminal in a browser tab: open the URL and your shell is there, from any machine. One Go binary, your default shell or tmux for sessions that survive, Nerd Font rendering, PWA install and auto-reconnect.</span>
+                        <span class="project-desc"><strong>A real terminal in a browser tab</strong>: open the URL and your shell is there, from any machine.<br><strong>One Go binary</strong>, your default shell or tmux for sessions that survive, Nerd Font rendering, PWA install and auto-reconnect.</span>
                     </a>
 
                     <div class="project">
                         <span class="project-title">Agent Mesh <span class="project-link">private project</span></span>
-                        <span class="project-desc">I wanted to tell servers what to do in plain language, so I wrote the harness for it before Hermes or OpenClaw were public. It turned natural language into shell commands in a web terminal, with tmux sessions. It's private now. WISP carries its ideas, and PorTTY began as its browser terminal.</span>
+                        <span class="project-desc">I wanted to tell servers what to do in plain language, so I wrote the harness for it <strong>before Hermes or OpenClaw were public</strong>.<br>It turned natural language into shell commands in a web terminal, with tmux sessions.<br>It's private now.<br>WISP carries its ideas, and PorTTY began as its browser terminal.</span>
                     </div>
 
                 </section>
@@ -350,8 +350,7 @@
         </div>
     </div>
 
-    <script src="vendor/text-vide.js?v=12" defer></script>
-    <script src="app.js?v=12" defer></script>
-    <script src="room.js?v=12" defer></script>
+    <script src="app.js?v=13" defer></script>
+    <script src="room.js?v=13" defer></script>
 </body>
 </html>
