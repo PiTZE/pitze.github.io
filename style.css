@@ -462,6 +462,15 @@
             color: var(--fg-dim);
         }
 
+        /* Front of each word, set by the bionic-reading pass in app.js. */
+        .br {
+            font-weight: 700;
+        }
+
+        .muted .br {
+            color: var(--fg);
+        }
+
         .section-kicker {
             margin: 0 0 16px;
             color: var(--fg-dim);
