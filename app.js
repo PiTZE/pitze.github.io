@@ -1,30 +1,10 @@
         (function () {
-            // Bionic reading: bold the front of each word so the eye lands there and the
-            // rest follows. Words of one or two letters stay plain. Prose only; dates, tags
-            // and titles stay as they are.
+            // Word-front emphasis from text-vide (MIT, vendor/text-vide.js): the first
+            // letters of each word go bold. Prose only; dates, tags and titles stay as they are.
             document.querySelectorAll("#about .lede, #about .copy, .job-body p, .job-body li, .project-desc").forEach((el) => {
-                const texts = [];
-                for (const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); w.nextNode();) texts.push(w.currentNode);
-                for (const node of texts) {
-                    const text = node.nodeValue;
-                    const frag = document.createDocumentFragment();
-                    let at = 0;
-                    for (const m of text.matchAll(/\p{L}[\p{L}\p{M}'\u2019]{2,}/gu)) {
-                        const n = Math.max(1, Math.round(m[0].length * 0.4));
-                        const b = document.createElement("b");
-                        b.className = "br";
-                        b.textContent = m[0].slice(0, n);
-                        frag.append(text.slice(at, m.index), b, m[0].slice(n));
-                        at = m.index + m[0].length;
-                    }
-                    if (!at) continue;
-                    frag.append(text.slice(at));
-                    node.replaceWith(frag);
-                }
+                el.innerHTML = textVide.textVide(el.innerHTML, { fixationPoint: 3, sep: ['<b class="br">', "</b>"] });
             });
 
-            // One compact label at every width -- the long "Modus Operandi" form and its
-            // subtitle are gone, so the control reads the same on desktop as on a phone.
             const THEMES = {
                 "modus-vivendi": {
                     label: "OPERANDI",

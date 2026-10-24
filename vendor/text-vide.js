@@ -1,0 +1,26 @@
+/*! text-vide 1.8.6, https://github.com/Gumball12/text-vide (npm text-vide/dist/index.iife.js), unmodified.
+   An open implementation of the Bionic-Reading-style word-front emphasis.
+
+   MIT License
+
+   Copyright (c) 2022 shj
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+*/
+var textVide=(function(T){"use strict";const h=t=>t==null||t==="",L=(t,n)=>Object.keys(t).reduce((e,s)=>(n(e[s])&&delete e[s],e),t),I=(t,n)=>({...n,...L(t,h)}),E=["<b>","</b>"],_=t=>I(t,{sep:E,fixationPoint:1,ignoreHtmlTag:!0,ignoreHtmlEntity:!0}),f=[[0,4,12,17,24,29,35,42,48],[1,2,7,10,13,14,19,22,25,28,31,34,37,40,43,46,49],[1,2,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49],[0,2,4,5,6,8,9,11,14,15,17,18,20,0,21,23,24,26,27,29,30,32,33,35,36,38,39,41,42,44,45,47,48],[0,2,3,5,6,7,8,10,11,12,14,15,17,19,20,21,23,24,25,26,28,29,30,32,33,34,35,37,38,39,41,42,43,44,46,47,48]],y=(t,n)=>{const{length:i}=t,e=f[n-1]??f[0],s=e.findIndex(o=>i<=o);let c=i-s;return s===-1&&(c=i-e.length),Math.max(c,0)},H=(t,n)=>typeof n=="string"?`${n}${t}${n}`:`${n[0]}${t}${n[1]}`,R=t=>{const n=[];let i=0;for(;i<t.length;){const e=t.indexOf("<",i);if(e===-1)break;if(t.startsWith("<!--",e)){const c=t.indexOf("-->",e+4);if(c!==-1){n.push([e,c+2]),i=c+3;continue}}const s=t.indexOf(">",e+1);if(s===-1)break;s>e+1&&n.push([e,s]),i=s+1}return n},x=t=>{const i=R(t).reverse();return e=>{const s=e.index,c=i.find(([a])=>s>a);if(!c)return!1;const[,o]=c;return s<o}},A=t=>Array.from(t).map(n=>{const i=n.index,[e]=n,{length:s}=e;return[i,i+s-1]}),O=/&[\w#]+;/g,N=t=>{const n=t.matchAll(O),e=A(n).reverse();return s=>{const c=s.index,o=e.find(([l])=>c>l);if(!o)return!1;const[,r]=o;return c<r}},F=new RegExp("(\\p{L}|\\p{Nd})*\\p{L}(\\p{L}|\\p{Nd})*","gu"),M=(t,n={})=>{if(!t?.length)return"";const{fixationPoint:i,sep:e,ignoreHtmlTag:s,ignoreHtmlEntity:c}=_(n),o=Array.from(t.matchAll(F));let r="",a=0,l;s&&(l=x(t));let m;c&&(m=N(t));for(const d of o){if(l?.(d)||m?.(d))continue;const[k]=d,g=d.index,u=g+y(k,i),D=t.slice(a,g);r+=D,g!==u&&(r+=H(t.slice(g,u),e)),a=u}const p=t.slice(a);return r+p};return T.textVide=M,Object.defineProperty(T,Symbol.toStringTag,{value:"Module"}),T})({});
